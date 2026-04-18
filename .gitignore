@@ -1,0 +1,16 @@
+/vendor/
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Laravel 5 & Lumen specific
+bootstrap/cache/
+storage/
+*.env
+
+# Others
+Homestead.json
+Homestead.yaml
+.vagrant
+.vscode
+.idea

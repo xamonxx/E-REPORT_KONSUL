@@ -1,0 +1,81 @@
+/* ─── Animations ──────────────────────────────────────── */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes slideIn {
+    from { opacity: 0; transform: translateX(-12px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+@keyframes pulse-soft {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+.animate-fade-in { animation: fadeIn 0.4s ease-out both; }
+.animate-slide-in { animation: slideIn 0.3s ease-out both; }
+.animate-pulse-soft { animation: pulse-soft 2s ease-in-out infinite; }
+
+/* Stagger children animations */
+.stagger-children > *:nth-child(1) { animation-delay: 0ms; }
+.stagger-children > *:nth-child(2) { animation-delay: 60ms; }
+.stagger-children > *:nth-child(3) { animation-delay: 120ms; }
+.stagger-children > *:nth-child(4) { animation-delay: 180ms; }
+.stagger-children > *:nth-child(5) { animation-delay: 240ms; }
+
+/* ─── Glass Sidebar ──────────────────────────────────── */
+.glass-sidebar {
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+
+/* ─── Scrollbar Styling ──────────────────────────────── */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #abb3b7; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #586064; }
+
+/* ─── Toast Notification ─────────────────────────────── */
+.toast-container {
+    position: fixed;
+    top: 1.5rem;
+    right: 1.5rem;
+    z-index: 9999;
+}
+.toast {
+    animation: fadeIn 0.3s ease-out, fadeOut 0.3s ease-in 2.7s forwards;
+}
+@keyframes fadeOut {
+    to { opacity: 0; transform: translateY(-8px); }
+}
+
+/* ─── Modal Overlay ──────────────────────────────────── */
+.modal-overlay {
+    background: rgba(11, 15, 16, 0.4);
+    backdrop-filter: blur(4px);
+}
+
+/* ─── Print Stylesheet ───────────────────────────────── */
+@media print {
+    .glass-sidebar, header, .no-print { display: none !important; }
+    main { margin: 0 !important; padding: 0 !important; }
+    body { background: white !important; }
+}
+
+/* ─── Hover Lift Effect ──────────────────────────────── */
+.hover-lift {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.hover-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(43, 52, 55, 0.06);
+}
+
+/* ─── Status Chip Colors ─────────────────────────────── */
+.chip-hanya-tanya { background: rgba(234, 179, 8, 0.12); color: #a16207; }
+.chip-masuk-survey { background: rgba(133, 130, 255, 0.12); color: #6d5dfc; }
+.chip-kendala-anggaran { background: rgba(159, 64, 61, 0.12); color: #9f403d; }
+.chip-tidak-ada-respon { background: rgba(115, 124, 127, 0.12); color: #586064; }
+.chip-selesai-deal { background: rgba(0, 109, 74, 0.12); color: #006d4a; }
