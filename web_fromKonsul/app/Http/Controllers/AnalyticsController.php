@@ -32,8 +32,12 @@ class AnalyticsController extends Controller
         // Base query: scoped by user + optional account filter + period
         $query = Consultation::query()->forUser($user);
 
-        if ($user->isSuperAdmin() && $selectedAccount) {
-            $query->where('account_id', $selectedAccount);
+        if ($selectedAccount) {
+            if ($user->isSuperAdmin()) {
+                $query->where('account_id', $selectedAccount);
+            } elseif ($user->account_id == $selectedAccount) {
+                $query->where('account_id', $selectedAccount);
+            }
         }
 
         $query->whereMonth('consultation_date', $selectedMonth)
@@ -136,7 +140,7 @@ class AnalyticsController extends Controller
             ->get()
             ->map(fn($admin) => [
                 'name'    => $admin->name,
-                'account' => $admin->account?->name ?? '-',
+                'account' => $admin->account ? $admin->account->name : '-',
                 'total'   => $admin->consultations_count,
             ])->sortByDesc('total')->values();
     }

@@ -21,12 +21,12 @@ class Account extends Model
 
     public function users()
     {
-        return $this->hasMany(User::class);
+        return $this->belongsToMany(User::class);
     }
 
     public function admins()
     {
-        return $this->hasMany(User::class)->where('role', UserRole::Admin);
+        return $this->belongsToMany(User::class)->where('role', UserRole::Admin);
     }
 
     public function consultations()

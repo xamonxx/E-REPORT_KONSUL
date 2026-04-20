@@ -104,15 +104,23 @@
         h1, h2, h3, .font-headline { font-family: 'Manrope', sans-serif; }
     </style>
 </head>
+@php $isSidebarOpen = request()->cookie('sidebar_open', 'false') === 'true'; @endphp
 <body class="bg-surface text-on-surface selection:bg-primary-container selection:text-primary"
-      x-data="{ sidebarOpen: false }">
+      x-data="{ 
+          isMobile: window.innerWidth < 1024,
+          sidebarOpen: window.innerWidth >= 1024 ? {{ $isSidebarOpen ? 'true' : 'false' }} : false 
+      }"
+      x-init="$watch('sidebarOpen', val => { 
+          if (!isMobile) document.cookie = 'sidebar_open=' + val + '; path=/; max-age=31536000'; 
+      })"
+      @resize.window="isMobile = window.innerWidth < 1024; if(isMobile) sidebarOpen = false">
 
     {{-- Mobile Sidebar Overlay --}}
     <div x-show="sidebarOpen" x-cloak
          x-transition:enter="transition ease-out duration-300"
          x-transition:enter-start="opacity-0"
          x-transition:enter-end="opacity-100"
-         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave="transition ease-in-out duration-300"
          x-transition:leave-start="opacity-100"
          x-transition:leave-end="opacity-0"
          @click="sidebarOpen = false"
@@ -122,15 +130,13 @@
     <div class="flex h-screen relative overflow-hidden">
 
         {{-- Sidebar (desktop: static, mobile: drawer) --}}
-        <div class="fixed inset-y-0 left-0 z-50 lg:static lg:z-auto"
-             :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'"
-             x-cloak
-             class="transition-transform duration-300 ease-in-out">
+        <div class="fixed inset-y-0 left-0 z-50 lg:static transition-all duration-300 ease-in-out shrink-0 overflow-hidden {{ $isSidebarOpen ? 'max-lg:-translate-x-full lg:translate-x-0 w-64' : '-translate-x-full lg:translate-x-0 lg:w-[5.5rem] w-64' }}"
+             :class="sidebarOpen ? '!translate-x-0 !w-64' : '!-translate-x-full lg:!translate-x-0 lg:!w-[5.5rem] !w-64'">
             @include('components.sidebar')
         </div>
 
         {{-- Main Content --}}
-        <main class="flex-1 flex flex-col min-w-0 bg-surface-container-low w-full overflow-y-auto">
+        <main class="flex-1 flex flex-col min-w-0 bg-surface-container-low w-full overflow-y-scroll">
 
             {{-- Header --}}
             @include('components.header')

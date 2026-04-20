@@ -5,9 +5,9 @@
 <header x-data="notificationBadge({{ $initialTotalAlerts }}, '{{ route('api.notifications') }}', '{{ csrf_token() }}')"
         x-init="startPolling()"
         class="sticky top-0 w-full z-30 bg-white/90 backdrop-blur-lg flex justify-between items-center px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
-    <div class="flex items-center gap-3 sm:gap-8">
-        {{-- Hamburger Menu (Mobile Only) --}}
-        <button @click="sidebarOpen = !sidebarOpen" class="lg:hidden w-10 h-10 rounded-xl flex items-center justify-center hover:bg-surface-container transition-colors text-on-surface-variant">
+    <div class="flex items-center gap-3 sm:gap-4">
+        {{-- Hamburger Menu --}}
+        <button @click="sidebarOpen = !sidebarOpen" class="w-10 h-10 rounded-xl flex items-center justify-center hover:bg-surface-container/50 transition-colors text-on-surface-variant shrink-0 relative z-40">
             <x-icon name="menu" class="w-5 h-5" />
         </button>
 
@@ -16,11 +16,11 @@
                 <span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mt-0.5 hidden sm:inline">AKUN :</span>
                 <div class="bg-surface-container-high px-2 sm:px-3 py-1.5 rounded-lg flex items-center gap-2 shadow-sm border border-outline-variant/10">
                     <div class="w-2 h-2 rounded-full bg-primary animate-pulse-soft"></div>
-                    <span class="font-bold text-slate-800 text-xs tracking-wide truncate max-w-[120px] sm:max-w-none">{{ $user->account->name }}</span>
+                    <span class="font-bold text-slate-800 text-xs tracking-wide truncate max-w-[120px] sm:max-w-none leading-none mt-0.5">{{ $user->account->name }}</span>
                 </div>
             </div>
         @else
-            <span class="text-base sm:text-lg font-bold text-slate-800 font-headline">E-REPORT</span>
+            <span class="text-base sm:text-lg font-extrabold text-slate-800 font-headline leading-none mt-0.5 tracking-tight">E-REPORT</span>
         @endif
     </div>
 
@@ -104,11 +104,11 @@
         <div class="h-6 w-px bg-outline-variant/30 hidden sm:block"></div>
         <div x-data="{ userMenu: false }" class="relative flex items-center gap-2 sm:gap-3 pl-0 sm:pl-2">
             <button @click="userMenu = !userMenu" @click.away="userMenu = false" class="flex items-center gap-2 sm:gap-3 hover:opacity-80 transition-all focus:outline-none">
-                <div class="text-right hidden sm:block">
-                    <p class="text-xs font-bold text-on-surface">{{ $user->name }}</p>
-                    <p class="text-[10px] text-on-surface-variant uppercase tracking-wider">{{ $user->isSuperAdmin() ? 'Super Admin' : 'Admin Akun' }}</p>
+                <div class="text-right hidden sm:flex flex-col justify-center">
+                    <p class="text-xs font-bold text-slate-800 leading-tight">{{ $user->name }}</p>
+                    <p class="text-[9px] text-on-surface-variant uppercase tracking-widest leading-tight">{{ $user->isSuperAdmin() ? 'Super Admin' : 'Admin Akun' }}</p>
                 </div>
-                <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-primary-container flex items-center justify-center text-primary font-bold text-sm ring-2 ring-surface-container-highest shadow-sm">
+                <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-primary-container flex items-center justify-center text-primary font-bold text-sm ring-2 ring-surface-container-highest shadow-sm">
                     {{ strtoupper(substr($user->name, 0, 2)) }}
                 </div>
             </button>

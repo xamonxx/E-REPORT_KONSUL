@@ -341,7 +341,7 @@
                             @endif
                         </td>
                         <td class="px-6 sm:px-8 py-4">
-                            <span class="text-sm font-bold text-on-surface-variant truncate max-w-[150px] block">{{ $u->account?->name ?? 'Akses Pusat' }}</span>
+                            <span class="text-sm font-bold text-on-surface-variant line-clamp-2 max-w-[150px]">{{ $u->account ? $u->account->name : 'Akses Pusat' }}</span>
                         </td>
                         <td class="px-6 sm:px-8 py-4 text-right">
                             <div class="flex justify-end gap-1 items-center">

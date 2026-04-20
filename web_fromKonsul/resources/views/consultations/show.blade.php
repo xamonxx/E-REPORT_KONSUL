@@ -3,11 +3,16 @@
 
 @section('content')
 <div class="flex flex-col sm:flex-row justify-between sm:items-end gap-6 mb-8">
-    <div>
-        <h2 class="text-2xl sm:text-3xl font-extrabold text-on-surface tracking-tight font-headline truncate pr-4">Detail Konsultasi</h2>
-        <div class="flex items-center gap-2 mt-1.5 overflow-hidden">
-            <span class="text-[10px] sm:text-xs font-bold text-on-surface-variant uppercase tracking-widest shrink-0">ID:</span>
-            <span class="font-mono bg-primary-container/30 text-primary px-2 py-0.5 rounded-lg text-sm truncate">{{ $consultation->consultation_id }}</span>
+    <div class="flex items-center gap-4">
+        <a href="{{ route('consultations.index') }}" class="w-10 h-10 rounded-xl bg-surface-container flex items-center justify-center text-on-surface-variant hover:bg-surface-container-high transition-all active:scale-90 shrink-0">
+            <x-icon name="arrow_back" class="w-5 h-5" />
+        </a>
+        <div class="min-w-0">
+            <h2 class="text-2xl sm:text-3xl font-extrabold text-on-surface tracking-tight font-headline truncate pr-4">Detail Konsultasi</h2>
+            <div class="flex items-center gap-2 mt-1.5 overflow-hidden">
+                <span class="text-[10px] sm:text-xs font-bold text-on-surface-variant uppercase tracking-widest shrink-0">ID:</span>
+                <span class="font-mono bg-primary-container/30 text-primary px-2 py-0.5 rounded-lg text-sm truncate">{{ $consultation->consultation_id }}</span>
+            </div>
         </div>
     </div>
     <div class="flex gap-3 no-print">

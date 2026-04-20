@@ -81,36 +81,43 @@ class Consultation extends Model
     }
 
     /**
-     * Auto-generate consultation ID in format YY.MMDD-NNN
+     * Auto-generate consultation ID in format: AA.YYMM.NNN
+     * - AA   = ID Akun (zero-padded 2 digit)
+     * - YYMM = Tahun 2 digit + Bulan 2 digit
+     * - NNN  = Nomor urut per akun per bulan (3 digit)
+     * Contoh: 01.2604.001
      *
      * Menggunakan DB::transaction + lockForUpdate untuk mencegah
-     * race condition / duplicate ID saat concurrent requests. (Fix #4)
+     * race condition / duplicate ID saat concurrent requests.
      */
     public static function generateConsultationId($accountId = null): string
     {
         return DB::transaction(function () use ($accountId) {
             $now = Carbon::now();
-            $prefix = $now->format('y.md');
-            
-            // Format ID Akun, default ke 000 jika tidak ada
-            $accountPadded = $accountId ? str_pad($accountId, 3, '0', STR_PAD_LEFT) : '000';
-            
-            $basePrefix = $prefix . '-' . $accountPadded;
 
-            $lastToday = static::where('consultation_id', 'like', $basePrefix . '-%')
+            // AA = ID Akun (2 digit, zero-padded)
+            $accountPadded = $accountId ? str_pad($accountId, 2, '0', STR_PAD_LEFT) : '00';
+
+            // YYMM = Tahun + Bulan
+            $yearMonth = $now->format('ym');
+
+            // Prefix: AA.YYMM
+            $basePrefix = $accountPadded . '.' . $yearMonth;
+
+            $lastInMonth = static::where('consultation_id', 'like', $basePrefix . '.%')
                 ->lockForUpdate()
                 ->orderByDesc('consultation_id')
                 ->first();
 
-            if ($lastToday) {
+            if ($lastInMonth) {
                 // Ekstrak 3 digit terakhir (NNN)
-                $lastNum = (int) substr($lastToday->consultation_id, -3);
+                $lastNum = (int) substr($lastInMonth->consultation_id, -3);
                 $nextNum = $lastNum + 1;
             } else {
                 $nextNum = 1;
             }
 
-            return $basePrefix . '-' . str_pad($nextNum, 3, '0', STR_PAD_LEFT);
+            return $basePrefix . '.' . str_pad($nextNum, 3, '0', STR_PAD_LEFT);
         });
     }
 }

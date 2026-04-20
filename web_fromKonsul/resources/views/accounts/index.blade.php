@@ -64,74 +64,85 @@
     </form>
 </div>
 
-<div class="grid grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-8 stagger-children">
+<div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6 stagger-children">
     @foreach($accounts as $account)
-    <div class="bg-surface-container-lowest p-3 sm:p-8 rounded-2xl shadow-sm hover-lift transition-all group relative border border-surface-container-low max-w-full overflow-hidden">
-        <div class="flex justify-between items-start mb-4 sm:mb-6">
+    <div class="bg-surface-container-lowest p-4 sm:p-5 rounded-2xl shadow-sm hover-lift transition-all group relative border border-surface-container-low max-w-full overflow-hidden flex flex-col">
+        <div class="flex justify-between items-start mb-3 sm:mb-4">
             @if($account->logo_path)
-                <img src="{{ Storage::url($account->logo_path) }}" alt="{{ $account->name }}" loading="lazy" class="w-10 h-10 sm:w-14 sm:h-14 rounded-lg sm:rounded-xl object-cover bg-surface shadow-sm ring-2 ring-surface">
+                <img src="{{ Storage::url($account->logo_path) }}" alt="{{ $account->name }}" loading="lazy" class="w-10 h-10 sm:w-12 sm:h-12 rounded-lg object-cover bg-surface shadow-sm ring-2 ring-surface">
             @else
-                <div class="p-2 sm:p-3 bg-primary-container/30 rounded-lg sm:rounded-xl group-hover:bg-primary group-hover:text-on-primary transition-colors text-primary shrink-0">
-                    <x-icon name="domain" class="w-5 h-5 sm:w-6 sm:h-6" />
+                <div class="p-2 sm:p-2.5 bg-primary-container/30 rounded-lg group-hover:bg-primary group-hover:text-on-primary transition-colors text-primary shrink-0">
+                    <x-icon name="domain" class="w-5 h-5" />
                 </div>
             @endif
             <div class="flex gap-1 no-print">
-                <a href="{{ route('accounts.edit', $account) }}" class="w-7 h-7 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl hover:bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-primary transition-all active:scale-90" title="Edit">
-                    <x-icon name="edit" class="w-4 h-4 sm:w-5 sm:h-5" />
+                <a href="{{ route('accounts.edit', $account) }}" class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg hover:bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-primary transition-all active:scale-90" title="Edit">
+                    <x-icon name="edit" class="w-4 h-4" />
                 </a>
                 <form id="delete-acct-{{ $account->id }}" method="POST" action="{{ route('accounts.destroy', $account) }}">
                     @csrf @method('DELETE')
                     <button type="button" onclick="confirmDeleteAccount('delete-acct-{{ $account->id }}', {{ \Illuminate\Support\Js::from($account->name) }})"
-                            class="w-7 h-7 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl hover:bg-error/10 flex items-center justify-center text-on-surface-variant hover:text-error transition-all active:scale-90"
+                            class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg hover:bg-error/10 flex items-center justify-center text-on-surface-variant hover:text-error transition-all active:scale-90"
                             title="Hapus">
-                        <x-icon name="delete" class="w-4 h-4 sm:w-5 sm:h-5" />
+                        <x-icon name="delete" class="w-4 h-4" />
                     </button>
                 </form>
             </div>
         </div>
-        <div class="space-y-1 mb-4 sm:mb-6">
-            <h3 class="font-bold text-on-surface text-sm sm:text-xl group-hover:text-primary transition-colors leading-tight truncate pr-2">
+        
+        <div class="space-y-0.5 mb-2 sm:mb-3">
+            <h3 class="font-bold text-on-surface text-sm sm:text-base group-hover:text-primary transition-colors leading-tight truncate pr-2">
                 {{ $account->name }}
             </h3>
-            <div class="flex items-center flex-wrap gap-1 sm:gap-2">
-                <span class="text-[8px] sm:text-[10px] font-mono font-bold bg-primary-container/40 text-primary px-1.5 py-0.5 rounded-md sm:rounded-lg">ID: {{ str_pad($account->id, 3, '0', STR_PAD_LEFT) }}</span>
+            <div class="flex items-center flex-wrap gap-1">
+                <span class="text-[8px] sm:text-[9px] font-mono font-bold bg-primary-container/40 text-primary px-1.5 py-0.5 rounded-md">ID: {{ str_pad($account->id, 3, '0', STR_PAD_LEFT) }}</span>
             </div>
         </div>
         
-        <p class="hidden sm:block text-xs sm:text-sm text-on-surface-variant mb-6 line-clamp-2 min-h-[2.5rem] leading-relaxed">{{ $account->description }}</p>
+        <p class="hidden sm:block text-[11px] sm:text-xs text-on-surface-variant mb-3 sm:mb-4 line-clamp-1 leading-relaxed">{{ $account->description ?? '-' }}</p>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4 mb-4 sm:mb-6">
-            <div class="bg-surface-container-low rounded-xl p-2 sm:p-4 flex flex-col items-center text-center shadow-inner">
-                <p class="text-[8px] sm:text-[10px] font-bold text-on-surface-variant uppercase tracking-widest opacity-60">Lead</p>
-                <p class="text-lg sm:text-2xl font-extrabold font-headline text-on-surface leading-none mt-0.5 sm:mt-1">{{ number_format($account->consultations_count) }}</p>
+        <div class="grid grid-cols-2 gap-2 sm:gap-3 mb-3 sm:mb-4 mt-auto">
+            <div class="bg-surface-container-low rounded-xl p-2 flex flex-col items-center text-center shadow-inner">
+                <p class="text-[8px] sm:text-[9px] font-bold text-on-surface-variant uppercase tracking-widest opacity-60">Lead</p>
+                <p class="text-base sm:text-xl font-extrabold font-headline text-on-surface leading-none mt-1">{{ number_format($account->consultations_count) }}</p>
             </div>
-            <div class="bg-surface-container-low rounded-xl p-2 sm:p-4 flex flex-col items-center text-center shadow-inner">
-                <p class="text-[8px] sm:text-[10px] font-bold text-on-surface-variant uppercase tracking-widest opacity-60">Konversi</p>
-                <p class="text-lg sm:text-2xl font-extrabold font-headline text-tertiary leading-none mt-0.5 sm:mt-1">{{ $account->conversion_rate }}%</p>
+            <div class="bg-surface-container-low rounded-xl p-2 flex flex-col items-center text-center shadow-inner">
+                <p class="text-[8px] sm:text-[9px] font-bold text-on-surface-variant uppercase tracking-widest opacity-60">Konversi</p>
+                <p class="text-base sm:text-xl font-extrabold font-headline text-tertiary leading-none mt-1">{{ $account->conversion_rate }}%</p>
             </div>
         </div>
 
-        <div class="space-y-1.5 sm:space-y-2">
+        <div class="space-y-1 sm:space-y-1.5 mb-1">
             @php $progress = min($account->target_progress, 100); @endphp
-            <div class="flex justify-between items-center text-[8px] sm:text-[10px] font-bold uppercase tracking-wider text-on-surface-variant px-0.5 sm:px-1">
+            <div class="flex justify-between items-center text-[8px] sm:text-[9px] font-bold uppercase tracking-wider text-on-surface-variant px-0.5">
                 <span>Target</span>
                 <span class="shrink-0">{{ $account->lead_count }}/{{ $account->target_leads }}</span>
             </div>
-            <div class="w-full bg-surface-container h-1.5 sm:h-2 rounded-full overflow-hidden shadow-inner">
+            <div class="w-full bg-surface-container h-1.5 sm:h-1.5 rounded-full overflow-hidden shadow-inner">
                 <div class="h-full bg-primary rounded-full transition-all duration-700 ease-out" style="width: {{ $progress }}%"></div>
             </div>
         </div>
 
         @if($account->admins->count() > 0)
-        <div class="mt-4 sm:mt-8 pt-3 sm:pt-6 border-t border-surface-container-low/50 hidden sm:block">
-            <p class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-3 px-1">Admin</p>
-            <div class="flex gap-2 flex-wrap">
+        <div class="mt-3 sm:mt-4 pt-3 border-t border-surface-container-low/50">
+            <p class="text-[9px] font-bold text-on-surface-variant uppercase tracking-widest mb-2 px-1">Admin</p>
+            <div class="flex gap-1.5 flex-wrap">
                 @foreach($account->admins as $admin)
-                <div class="flex items-center gap-1.5 bg-primary-container/20 text-primary px-2.5 py-1.5 rounded-lg text-[10px] font-bold ring-1 ring-primary/10">
-                    <x-icon name="person" class="w-3 h-3" />
+                <div class="flex items-center gap-1 bg-primary-container/20 text-primary px-2 py-1 rounded-md text-[9px] font-bold border border-primary/5 max-w-full">
+                    <x-icon name="person" class="w-3 h-3 shrink-0" />
                     <span class="truncate">{{ $admin->name }}</span>
                 </div>
                 @endforeach
+            </div>
+        </div>
+        @else
+        <div class="mt-3 sm:mt-4 pt-3 border-t border-surface-container-low/50">
+            <p class="text-[9px] font-bold text-on-surface-variant uppercase tracking-widest mb-2 px-1">Admin</p>
+            <div class="flex gap-1.5 flex-wrap">
+                <div class="flex items-center gap-1 bg-surface-container/50 text-on-surface-variant px-2 py-1 rounded-md text-[9px] font-bold max-w-full">
+                    <x-icon name="error" class="w-3 h-3 shrink-0" />
+                    <span class="truncate">Belum ada admin</span>
+                </div>
             </div>
         </div>
         @endif

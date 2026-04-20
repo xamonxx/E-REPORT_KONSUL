@@ -29,7 +29,7 @@
         <p class="text-2xl sm:text-3xl font-extrabold font-headline text-on-surface">{{ $avgConversion }}%</p>
     </div>
 
-    {{-- Active Accounts --}}
+    {{-- Accounts Status --}}
     <div class="bg-surface-container-lowest p-6 rounded-xl shadow-sm border border-transparent hover:border-primary/10 transition-all group hover-lift animate-fade-in">
         <div class="flex justify-between items-start mb-4">
             <div class="p-2 bg-secondary-container/50 rounded-lg group-hover:bg-secondary group-hover:text-on-primary transition-colors shrink-0">
@@ -37,8 +37,19 @@
             </div>
             <span class="text-[10px] font-bold text-on-surface-variant bg-surface-container-high px-2 py-0.5 rounded-full uppercase tracking-tighter hidden sm:inline">Stable</span>
         </div>
-        <h3 class="text-on-surface-variant text-[10px] sm:text-xs font-medium uppercase tracking-wider mb-1">Akun Aktif</h3>
-        <p class="text-2xl sm:text-3xl font-extrabold font-headline text-on-surface">{{ $activeAccounts }}</p>
+        <h3 class="text-on-surface-variant text-[10px] sm:text-xs font-medium uppercase tracking-wider mb-1">Total Semua Akun</h3>
+        <p class="text-2xl sm:text-3xl font-extrabold font-headline text-on-surface mb-2 leading-none">{{ $totalAccounts }}</p>
+        <div class="flex items-center gap-3 mt-auto">
+            <div class="flex items-center gap-1 min-w-0" title="Akun dengan Admin assigned">
+                <span class="w-1.5 h-1.5 rounded-full bg-secondary shrink-0"></span>
+                <span class="text-[9px] sm:text-[10px] text-on-surface-variant whitespace-nowrap"><span class="font-bold text-on-surface">{{ $activeAccounts }}</span> Aktif</span>
+            </div>
+            <div class="w-px h-3 bg-surface-container-high shrink-0"></div>
+            <div class="flex items-center gap-1 min-w-0" title="Akun tanpa Admin (Inactive)">
+                <span class="w-1.5 h-1.5 rounded-full bg-outline-variant shrink-0"></span>
+                <span class="text-[9px] sm:text-[10px] text-on-surface-variant whitespace-nowrap"><span class="font-bold text-on-surface">{{ $inactiveAccounts }}</span> Tidak Aktif</span>
+            </div>
+        </div>
     </div>
 
     {{-- Top Performing Admin --}}

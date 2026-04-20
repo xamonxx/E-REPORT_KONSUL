@@ -1,7 +1,7 @@
 @extends('layouts.guest')
 
 @section('content')
-<div x-data="{ showBugModal: false, WA_NUMBER: '6281234567890', bugMessage: '' }" class="w-full max-w-md animate-fade-in">
+<div x-data="{ showBugModal: false, WA_NUMBER: '6285168112098', bugMessage: '' }" class="w-full max-w-md animate-fade-in">
     {{-- Logo --}}
     <div class="text-center mb-10">
         <div class="w-16 h-16 rounded-2xl bg-primary flex items-center justify-center text-on-primary mx-auto mb-4 shadow-xl shadow-primary/20">

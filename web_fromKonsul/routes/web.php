@@ -19,7 +19,7 @@ use App\Http\Controllers\WilayahController;
 // ─── Guest Routes ────────────────────────────────────────
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
-    Route::post('/login', [AuthController::class, 'authenticate'])->name('login.authenticate')->middleware('throttle:5,1');
+    Route::post('/login', [AuthController::class, 'authenticate'])->name('login.authenticate');
 });
 
 // ─── Authenticated Routes ────────────────────────────────
@@ -31,6 +31,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/api/notifications', [NotificationController::class, 'unreadCount'])->name('api.notifications');
         Route::patch('/api/notifications/notes/{note}/read', [NotificationController::class, 'markNoteRead'])->name('api.notifications.notes.read');
         Route::patch('/api/notifications/reminders/{reminder}/read', [NotificationController::class, 'markReminderRead'])->name('api.notifications.reminders.read');
+        Route::get('/api/consultation-id-preview', [ConsultationController::class, 'previewId'])->name('api.consultation-id-preview');
     });
 
     // Dashboard

@@ -45,13 +45,14 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
                 <div class="space-y-2">
                     <label for="client_name" class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest px-1">Nama Klien <span class="text-error">*</span></label>
-                    <input type="text" id="client_name" name="client_name" value="{{ old('client_name') }}"
+                    <input type="text" id="client_name" name="client_name" value="{{ old('client_name') }}" maxlength="100"
                            class="w-full bg-surface-container-low border-0 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 placeholder:text-outline-variant shadow-inner font-bold"
                            placeholder="Nama lengkap klien" required />
                 </div>
                 <div class="space-y-2">
                     <label for="phone" class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest px-1">No. Telepon/WA <span class="text-error">*</span></label>
-                    <input type="text" id="phone" name="phone" value="{{ old('phone') }}"
+                    <input type="text" id="phone" name="phone" value="{{ old('phone') }}" maxlength="25"
+                           oninput="this.value = this.value.replace(/[^0-9\s\-\+\(\)]/g, '')"
                            class="w-full bg-surface-container-low border-0 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 placeholder:text-outline-variant shadow-inner font-bold"
                            placeholder="Contoh: 08123456789" required />
                 </div>
@@ -80,7 +81,7 @@
                     </div>
                     <div class="space-y-2 relative">
                         <label for="city" class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest px-1">Kota / Kabupaten</label>
-                        <input type="text" id="city" name="city" value="{{ old('city') }}" x-model="city"
+                        <input type="text" id="city" name="city" value="{{ old('city') }}" x-model="city" maxlength="100"
                                @input="onCityInput()" @blur="setTimeout(() => showSuggestions = false, 200)" @focus="onCityInput()"
                                class="w-full bg-surface-container-low border-0 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 placeholder:text-outline-variant shadow-inner font-medium"
                                placeholder="Ketik nama kota..." autocomplete="off" />
@@ -102,13 +103,13 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
                     <div class="space-y-2">
                         <label for="district" class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest px-1">Kecamatan <span class="text-outline-variant font-medium normal-case">(opsional)</span></label>
-                        <input type="text" id="district" name="district" value="{{ old('district') }}"
+                        <input type="text" id="district" name="district" value="{{ old('district') }}" maxlength="100"
                                class="w-full bg-surface-container-low border-0 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 placeholder:text-outline-variant shadow-inner font-medium"
                                placeholder="Nama kecamatan" />
                     </div>
                     <div class="space-y-2">
                         <label for="address" class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest px-1">Alamat Lengkap <span class="text-outline-variant font-medium normal-case">(opsional)</span></label>
-                        <textarea id="address" name="address" rows="2"
+                        <textarea id="address" name="address" rows="2" maxlength="500"
                                   class="w-full bg-surface-container-low border-0 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 resize-none shadow-inner placeholder:text-outline-variant font-medium"
                                   placeholder="Masukkan alamat lengkap">{{ old('address') }}</textarea>
                     </div>
@@ -173,7 +174,7 @@
 
             <div class="space-y-2">
                 <label for="notes" class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest px-1">Catatan Follow-Up Awal</label>
-                <textarea id="notes" name="notes" rows="4"
+                <textarea id="notes" name="notes" rows="4" maxlength="1000"
                           class="w-full bg-surface-container-low border-0 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 resize-none shadow-inner placeholder:text-outline-variant leading-relaxed font-medium"
                           placeholder="Hasil brief awal atau info tambahan klien...">{{ old('notes') }}</textarea>
             </div>

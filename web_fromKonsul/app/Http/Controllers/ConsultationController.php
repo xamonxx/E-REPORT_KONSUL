@@ -22,8 +22,12 @@ class ConsultationController extends Controller
         if ($request->filled('status')) {
             $query->where('status_category_id', $request->status);
         }
-        if ($request->filled('account') && $user->isSuperAdmin()) {
-            $query->where('account_id', $request->account);
+        if ($request->filled('account')) {
+            if ($user->isSuperAdmin()) {
+                $query->where('account_id', $request->account);
+            } elseif ($user->account_id == $request->account) {
+                $query->where('account_id', $request->account);
+            }
         }
         if ($request->filled('start_date')) {
             $query->whereDate('consultation_date', '>=', $request->start_date);
@@ -43,7 +47,7 @@ class ConsultationController extends Controller
         $consultations = $query->latest()->paginate(15)->withQueryString();
 
         $statuses = StatusCategory::orderBy('sort_order')->get();
-        $accounts = $user->isSuperAdmin() ? Account::orderBy('name')->get() : collect();
+        $accounts = $user->isSuperAdmin() ? Account::orderBy('name')->get() : ($user->account ? collect([$user->account]) : collect([]));
 
         // Data needed for Create Consultation Modal
         $previewAccountId = $user->isAdmin() ? $user->account_id : ($accounts->first()->id ?? 1);
@@ -57,7 +61,7 @@ class ConsultationController extends Controller
     public function create()
     {
         $user = auth()->user();
-        $accounts = $user->isSuperAdmin() ? Account::orderBy('name')->get() : collect();
+        $accounts = $user->isSuperAdmin() ? Account::orderBy('name')->get() : ($user->account ? collect([$user->account]) : collect([]));
         
         // Dapatkan default account ID untuk preview ID Consultation
         $previewAccountId = $user->isAdmin() ? $user->account_id : ($accounts->first()->id ?? 1);
@@ -79,7 +83,9 @@ class ConsultationController extends Controller
 
         // Security: admin can only create for their own account
         if ($user->isAdmin()) {
-            $validated['account_id'] = $user->account_id;
+            if ($user->account_id != $validated['account_id']) {
+                abort(403);
+            }
         }
 
         // Deduplication Check
@@ -109,10 +115,14 @@ class ConsultationController extends Controller
         $consultation->load(['account', 'needsCategory', 'statusCategory', 'timelineNotes.user', 'reminders.user']);
 
         // Mark unread notes from others as read
-        $consultation->timelineNotes()
+        $updated = $consultation->timelineNotes()
             ->where('user_id', '!=', $user->id)
             ->where('is_read', false)
             ->update(['is_read' => true]);
+
+        if ($updated) {
+            \Illuminate\Support\Facades\Cache::forget("api_notif_{$user->id}");
+        }
 
         return view('consultations.show', compact('consultation'));
     }
@@ -124,7 +134,7 @@ class ConsultationController extends Controller
         $user = auth()->user();
         $categories = NeedsCategory::orderBy('name')->get();
         $statuses = StatusCategory::orderBy('sort_order')->get();
-        $accounts = $user->isSuperAdmin() ? Account::orderBy('name')->get() : collect();
+        $accounts = $user->isSuperAdmin() ? Account::orderBy('name')->get() : ($user->account ? collect([$user->account]) : collect([]));
 
         // Provinsi dari config — satu sumber data (Fix #1a)
         $provinces = config('wilayah.provinces');
@@ -140,10 +150,10 @@ class ConsultationController extends Controller
         $validated = $request->validated();
 
         if ($user->isAdmin()) {
-            $validated['account_id'] = $user->account_id;
+            if ($user->account_id != $validated['account_id']) {
+                abort(403);
+            }
         }
-
-        // Deduplication Check
         $exists = Consultation::where('phone', $validated['phone'])
             ->where('account_id', $validated['account_id'])
             ->where('id', '!=', $consultation->id)
@@ -324,5 +334,16 @@ class ConsultationController extends Controller
 
         return redirect()->route('consultations.index')
             ->with('success', 'Data konsultasi berhasil dihapus!');
+    }
+
+    /**
+     * API: Preview consultation ID based on selected account.
+     */
+    public function previewId(Request $request)
+    {
+        $accountId = $request->input('account_id', auth()->user()->account_id ?? 1);
+        $previewId = Consultation::generateConsultationId($accountId);
+
+        return response()->json(['id' => $previewId]);
     }
 }

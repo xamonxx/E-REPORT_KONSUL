@@ -28,9 +28,12 @@ class ConsultationNotePolicy
      */
     public function delete(User $user, ConsultationNote $note): bool
     {
-        $consultation = $note->consultation;
+        $consultation = $note->consultation ?? Consultation::find($note->consultation_id);
 
-        // Admin harus dalam akun yang sama dengan konsultasi
+        if (!$consultation) {
+            return false;
+        }
+
         if ($user->account_id !== $consultation->account_id) {
             return false;
         }

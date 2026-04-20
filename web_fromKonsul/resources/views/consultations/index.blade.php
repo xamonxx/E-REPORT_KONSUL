@@ -113,7 +113,8 @@
                         {{-- Auto ID --}}
                         <div class="space-y-2">
                             <label class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest px-1">ID Konsultasi (Otomatis)</label>
-                            <div class="bg-surface-container-low rounded-xl px-4 py-3 text-sm font-mono font-bold text-primary shadow-inner border border-surface-container text-center sm:text-left">
+                            <div class="bg-surface-container-low rounded-xl px-4 py-3 text-sm font-mono font-bold text-primary shadow-inner border border-surface-container text-center sm:text-left"
+                                 id="preview-consultation-id">
                                 {{ $newId }}
                             </div>
                         </div>
@@ -128,7 +129,8 @@
                             </div>
                             <div class="space-y-2">
                                 <label for="phone" class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest px-1">No. Telepon/WA <span class="text-error">*</span></label>
-                                <input type="text" id="phone" name="phone" value="{{ old('phone') }}"
+                                <input type="text" id="phone" name="phone" value="{{ old('phone') }}" maxlength="25"
+                                       oninput="this.value = this.value.replace(/[^0-9\s\-\+\(\)]/g, '')"
                                        class="w-full bg-surface-container-low border-0 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 placeholder:text-outline-variant shadow-inner font-bold"
                                        placeholder="Contoh: 08123456789" required />
                             </div>
@@ -197,7 +199,7 @@
                         <div class="space-y-2">
                             <label for="modal_account_id" class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest px-1">Akun Cabang Interior <span class="text-error">*</span></label>
                             <div class="relative group">
-                                <select id="modal_account_id" name="account_id" class="w-full bg-surface-container-low border-0 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 appearance-none bg-none shadow-inner font-bold text-primary" required>
+                                <select id="modal_account_id" name="account_id" onchange="updatePreviewId(this.value)" class="w-full bg-surface-container-low border-0 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 appearance-none bg-none shadow-inner font-bold text-primary" required>
                                     <option value="">Pilih Cabang Studio...</option>
                                     @foreach($accounts as $acc)
                                     <option value="{{ $acc->id }}" {{ old('account_id') == $acc->id ? 'selected' : '' }}>{{ $acc->name }}</option>
@@ -514,6 +516,21 @@
                 this.suggestions = [];
             }
         };
+    }
+
+    function updatePreviewId(accountId) {
+        const el = document.getElementById('preview-consultation-id');
+        if (!accountId || !el) return;
+        el.style.opacity = '0.5';
+        fetch('{{ route("api.consultation-id-preview") }}?account_id=' + accountId, {
+            headers: { 'Accept': 'application/json' }
+        })
+        .then(res => res.json())
+        .then(data => {
+            el.textContent = data.id;
+            el.style.opacity = '1';
+        })
+        .catch(() => { el.style.opacity = '1'; });
     }
 </script>
 @endpush

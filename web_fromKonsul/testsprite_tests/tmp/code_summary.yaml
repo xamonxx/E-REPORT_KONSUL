@@ -1,0 +1,88 @@
+version: "2"
+type: backend
+tech_stack:
+  - PHP
+  - Laravel
+  - MySQL
+  - Blade
+features:
+  - name: Authentication
+    description: User login and session management
+    files:
+      - app/Http/Controllers/AuthController.php
+      - routes/web.php
+    endpoints:
+      - method: GET
+        path: /login
+        description: Show login page
+        auth_required: false
+      - method: POST
+        path: /login
+        description: Authenticate user
+        auth_required: false
+      - method: POST
+        path: /logout
+        description: Logout user
+        auth_required: true
+  - name: Consultation Management
+    description: CRUD operations for consultations (leads) and importing
+    files:
+      - app/Http/Controllers/ConsultationController.php
+      - app/Http/Controllers/ConsultationNoteController.php
+      - routes/web.php
+    endpoints:
+      - method: GET
+        path: /consultations
+        description: List all consultations
+        auth_required: true
+      - method: POST
+        path: /consultations
+        description: Create a new consultation
+        auth_required: true
+      - method: PUT
+        path: /consultations/{consultation}
+        description: Update existing consultation
+        auth_required: true
+      - method: DELETE
+        path: /consultations/{consultation}
+        description: Delete consultation
+        auth_required: true
+      - method: POST
+        path: /consultations/import
+        description: Import consultations via CSV
+        auth_required: true
+  - name: Master Data Management
+    description: Super admin management of categories, statuses, and users
+    files:
+      - app/Http/Controllers/MasterDataController.php
+      - routes/web.php
+    endpoints:
+      - method: GET
+        path: /master-data
+        description: View master data dashboard
+        auth_required: true
+      - method: POST
+        path: /master-data/users
+        description: Create a new user
+        auth_required: true
+  - name: Accounts Management
+    description: Super admin management of accounts assigned to users
+    files:
+      - app/Http/Controllers/AccountController.php
+      - routes/web.php
+    endpoints:
+      - method: GET
+        path: /accounts
+        description: List all accounts
+        auth_required: true
+  - name: Analytics Dashboard
+    description: Viewing system analytics
+    files:
+      - app/Http/Controllers/AnalyticsController.php
+      - routes/web.php
+    endpoints:
+      - method: GET
+        path: /analytics
+        description: View analytics data
+        auth_required: true
+known_limitations: []

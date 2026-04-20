@@ -18,37 +18,26 @@ class MasterDataController extends Controller
     {
         $tab = $request->get('tab', 'categories');
 
-        // Only query data for the active tab — avoid wasting queries on hidden tabs
-        $emptyPaginator = fn(string $pageName = 'page') => new LengthAwarePaginator([], 0, 10, 1, ['pageName' => $pageName]);
+        $categories = NeedsCategory::orderBy('name')->paginate(10, ['*'], 'categories_page');
 
-        $categories = $tab === 'categories'
-            ? NeedsCategory::orderBy('name')->paginate(10, ['*'], 'categories_page')
-            : $emptyPaginator('categories_page');
+        $statuses = StatusCategory::orderBy('sort_order')->paginate(10, ['*'], 'statuses_page');
 
-        $statuses = $tab === 'statuses'
-            ? StatusCategory::orderBy('sort_order')->paginate(10, ['*'], 'statuses_page')
-            : $emptyPaginator('statuses_page');
-
-        $users = $emptyPaginator('users_page');
-        $accounts = collect();
-        if ($tab === 'users') {
-            $userQuery = User::with('account')->orderBy('name');
-            if ($request->filled('search_user')) {
-                $search = $request->search_user;
-                $userQuery->where(function($q) use ($search) {
-                    $q->where('name', 'like', "%{$search}%")
-                      ->orWhere('email', 'like', "%{$search}%")
-                      ->orWhereHas('account', function($aq) use ($search) {
-                          $aq->where('name', 'like', "%{$search}%");
-                      });
-                });
-            }
-            $users = $userQuery->paginate(10, ['*'], 'users_page')->appends([
-                'tab' => $tab,
-                'search_user' => $request->search_user
-            ]);
-            $accounts = Account::orderBy('name')->get();
+        $userQuery = User::with('account')->orderBy('name');
+        if ($request->filled('search_user')) {
+            $search = $request->search_user;
+            $userQuery->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%")
+                  ->orWhereHas('account', function($aq) use ($search) {
+                      $aq->where('name', 'like', "%{$search}%");
+                  });
+            });
         }
+        $users = $userQuery->paginate(10, ['*'], 'users_page')->appends([
+            'tab' => 'users',
+            'search_user' => $request->search_user
+        ]);
+        $accounts = Account::orderBy('name')->get();
 
         return view('master-data.index', compact('tab', 'categories', 'statuses', 'users', 'accounts'));
     }
@@ -127,7 +116,7 @@ class MasterDataController extends Controller
 
         $role = UserRole::from($request->role);
 
-        User::create([
+        $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),

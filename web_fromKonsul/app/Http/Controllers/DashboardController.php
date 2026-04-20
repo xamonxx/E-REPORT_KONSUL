@@ -65,7 +65,9 @@ class DashboardController extends Controller
 
         return [
             'totalLeads' => $totalLeads,
-            'activeAccounts' => Account::count(),
+            'totalAccounts' => Account::count(),
+            'activeAccounts' => Account::has('admins')->count(),
+            'inactiveAccounts' => Account::doesntHave('admins')->count(),
             'avgConversion' => $avgConversion,
             'growthPercent' => $growthPercent,
         ];
@@ -131,9 +133,9 @@ class DashboardController extends Controller
             abort(403, 'Akun cabang belum di-assign ke user Anda. Hubungi Super Admin.');
         }
 
-        // Cache admin dashboard per account for 5 minutes
+        // Cache admin dashboard per account id for 5 minutes
         $cacheKey = "dashboard:admin:{$accountId}";
-        $cachedData = Cache::remember($cacheKey, 5 * 60, function () use ($accountId) {
+        $cachedData = Cache::remember($cacheKey, 5 * 60, function () use ($accountId, $user) {
             $dealStatusId = $this->resolveStatusId('deal');
             $surveyStatusId = $this->resolveStatusId('survey');
 
@@ -149,7 +151,7 @@ class DashboardController extends Controller
                 : 0;
 
             return [
-                'account' => Account::findOrFail($accountId),
+                'account' => $user->account,
                 'totalLeads' => $totalLeads,
                 'conversionRate' => $conversionRate,
                 'pendingSurveys' => $pendingSurveys,
