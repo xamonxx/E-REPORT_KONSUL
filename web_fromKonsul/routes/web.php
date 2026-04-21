@@ -65,8 +65,8 @@ Route::middleware('auth')->group(function () {
 
     // Settings
     Route::get('/settings', [SettingsController::class, 'index'])->name('settings');
-    Route::put('/settings/profile', [SettingsController::class, 'updateProfile'])->name('settings.profile');
-    Route::put('/settings/password', [SettingsController::class, 'updatePassword'])->name('settings.password');
+    Route::put('/settings/account', [SettingsController::class, 'updateAccount'])->name('settings.account');
+    Route::put('/settings/theme', [SettingsController::class, 'updateTheme'])->name('settings.theme');
 
     // Export
     Route::get('/export/csv', [ExportController::class, 'exportCsv'])->name('export.csv');
@@ -90,6 +90,7 @@ Route::middleware('auth')->group(function () {
         Route::delete('/master-data/statuses/{status}', [MasterDataController::class, 'destroyStatus'])->name('master-data.statuses.destroy');
 
         Route::post('/master-data/users', [MasterDataController::class, 'storeUser'])->name('master-data.users.store');
+        Route::put('/master-data/users/{user}', [MasterDataController::class, 'updateUser'])->name('master-data.users.update');
         Route::put('/master-data/users/{user}/reset-password', [MasterDataController::class, 'resetUserPassword'])->name('master-data.users.reset-password');
         Route::delete('/master-data/users/{user}', [MasterDataController::class, 'destroyUser'])->name('master-data.users.destroy');
     });

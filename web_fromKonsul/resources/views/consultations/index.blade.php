@@ -3,12 +3,13 @@
 
 @section('content')
 {{-- Page Header --}}
-<div x-data="{ 
-    showImportModal: {{ $errors->has('csv_file') ? 'true' : 'false' }}, 
-    showCreateModal: {{ old('client_name') ? 'true' : 'false' }},
-    showEditModal: false,
-    editData: {}
-}" id="consultations-page" class="flex flex-col xl:flex-row xl:items-end justify-between gap-6 mb-6">
+<div x-data="consultationsPage({
+        showImportModal: {{ $errors->has('csv_file') ? 'true' : 'false' }},
+        showCreateModal: {{ old('client_name') ? 'true' : 'false' }}
+    })"
+    x-init="init()"
+    id="consultations-page"
+    class="flex flex-col xl:flex-row xl:items-end justify-between gap-6 mb-6">
     <div>
         <h2 class="text-2xl sm:text-3xl font-extrabold text-on-surface tracking-tight font-headline">Leads Management</h2>
         <p class="text-sm sm:text-base text-on-surface-variant mt-1">Kelola semua data konsultasi klien.</p>
@@ -35,7 +36,7 @@
     <template x-teleport="body">
         <div x-show="showImportModal" x-cloak class="fixed inset-0 z-[60] flex items-center justify-center bg-inverse-surface/50 backdrop-blur-sm p-4"
              x-transition.opacity.duration.300ms>
-            <div @click.away="showImportModal = false" class="bg-surface-container-lowest p-6 sm:p-8 rounded-2xl shadow-xl w-full max-w-lg animate-fade-in">
+            <div class="bg-surface-container-lowest p-6 sm:p-8 rounded-2xl shadow-xl w-full max-w-lg animate-fade-in">
                 <div class="flex justify-between items-center mb-6">
                     <h3 class="font-bold text-on-surface font-headline text-xl">Import Data CSV</h3>
                     <button @click="showImportModal = false" class="text-on-surface-variant hover:text-error transition-colors">
@@ -79,8 +80,7 @@
              x-transition:leave-start="opacity-100"
              x-transition:leave-end="opacity-0">
             
-            <div @click.away="showCreateModal = false" 
-                 class="bg-surface-container-lowest w-full sm:max-w-2xl sm:rounded-2xl shadow-2xl flex flex-col max-h-[90vh] sm:max-h-[85vh] rounded-t-3xl sm:rounded-t-2xl animate-fade-in"
+            <div class="bg-surface-container-lowest w-full sm:max-w-2xl sm:rounded-2xl shadow-2xl flex flex-col max-h-[90vh] sm:max-h-[85vh] rounded-t-3xl sm:rounded-t-2xl animate-fade-in"
                  x-transition:enter="transition ease-out duration-300 delay-75"
                  x-transition:enter-start="opacity-0 translate-y-10"
                  x-transition:enter-end="opacity-100 translate-y-0">
@@ -142,7 +142,7 @@
                         </div>
 
                         {{-- Province + City (with auto-fill) --}}
-                        <div x-data="modalCityAutoFill()" class="space-y-5">
+                        <div x-data="modalCityAutoFill(@js(old('city', '')), @js(old('province', '')))" class="space-y-5">
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                                 <div class="space-y-2">
                                     <label for="modal_province" class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest px-1">
@@ -152,14 +152,64 @@
                                             <span class="text-[9px]">Mencari...</span>
                                         </span>
                                     </label>
-                                    <div class="relative group">
-                                        <select id="modal_province" name="province" x-model="province" class="w-full bg-surface-container-low border-0 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 appearance-none bg-none shadow-inner font-medium">
-                                            <option value="">Pilih Provinsi...</option>
-                                            @foreach($provinces as $prov)
-                                            <option value="{{ $prov }}" {{ old('province') === $prov ? 'selected' : '' }}>{{ $prov }}</option>
-                                            @endforeach
-                                        </select>
-                                        <x-icon name="expand_more" class="w-5 h-5 absolute right-4 top-1/2 -translate-y-1/2 text-outline-variant pointer-events-none group-focus-within:rotate-180 transition-transform" />
+                                    <div x-data="searchableOptions(@js($provinces))"
+                                         @click.outside="close()"
+                                         @keydown.escape.prevent.stop="close()"
+                                         class="relative">
+                                        <input type="hidden" name="province" :value="province">
+                                        <button type="button"
+                                                id="modal_province"
+                                                @click="toggle()"
+                                                class="w-full bg-surface-container-low rounded-xl pl-4 pr-12 py-3 text-left text-sm shadow-inner transition focus:outline-none focus:ring-2 focus:ring-primary/20"
+                                                :class="open ? 'ring-2 ring-primary/20' : ''"
+                                                :aria-expanded="open.toString()"
+                                                aria-haspopup="listbox">
+                                            <span class="block truncate"
+                                                  :class="province ? 'font-medium text-on-surface' : 'font-medium text-outline-variant'"
+                                                  x-text="province || 'Pilih Provinsi...'"></span>
+                                        </button>
+                                        <button x-show="province"
+                                                x-cloak
+                                                type="button"
+                                                @click.stop="province = ''; close()"
+                                                class="absolute right-10 top-1/2 -translate-y-1/2 rounded-md p-1 text-outline-variant transition hover:bg-surface-container hover:text-on-surface"
+                                                aria-label="Kosongkan provinsi">
+                                            <x-icon name="close" class="w-4 h-4" />
+                                        </button>
+                                        <x-icon name="expand_more"
+                                                class="w-5 h-5 absolute right-4 top-1/2 -translate-y-1/2 text-outline-variant pointer-events-none transition-transform"
+                                                x-bind:class="open ? 'rotate-180' : ''" />
+
+                                        <div x-show="open"
+                                             x-cloak
+                                             x-transition:enter="transition ease-out duration-150"
+                                             x-transition:enter-start="opacity-0 -translate-y-1"
+                                             x-transition:enter-end="opacity-100 translate-y-0"
+                                             class="absolute left-0 right-0 top-full z-[70] mt-2 overflow-hidden rounded-2xl border border-surface-container-low bg-surface-container-lowest shadow-2xl">
+                                            <div class="border-b border-surface-container-low p-3">
+                                                <input x-ref="searchInput"
+                                                       type="text"
+                                                       x-model="search"
+                                                       class="w-full rounded-xl border-0 bg-surface-container-low px-4 py-3 text-sm shadow-inner focus:ring-2 focus:ring-primary/20"
+                                                       placeholder="Cari provinsi..."
+                                                       autocomplete="off">
+                                            </div>
+                                            <div class="max-h-60 overflow-y-auto p-1.5">
+                                                <template x-if="filteredOptions().length === 0">
+                                                    <div class="px-4 py-3 text-sm text-outline-variant">Provinsi tidak ditemukan.</div>
+                                                </template>
+                                                <template x-for="option in filteredOptions()" :key="option.value">
+                                                    <button type="button"
+                                                            @mousedown.prevent="province = option.value; close()"
+                                                            class="flex w-full items-center justify-between gap-3 rounded-xl px-4 py-3 text-left text-sm transition hover:bg-primary/5 hover:text-primary">
+                                                        <span class="truncate font-semibold" x-text="option.label"></span>
+                                                        <x-icon name="check"
+                                                                class="h-4 w-4 text-primary"
+                                                                x-show="province === option.value"></x-icon>
+                                                    </button>
+                                                </template>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="space-y-2 relative">
@@ -202,15 +252,58 @@
                         {{-- Account Selection (Super Admin Only) --}}
                         @if(auth()->user()->isSuperAdmin())
                         <div class="space-y-2">
-                            <label for="modal_account_id" class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest px-1">Akun Cabang Interior <span class="text-error">*</span></label>
-                            <div class="relative group">
-                                <select id="modal_account_id" name="account_id" onchange="updatePreviewId(this.value)" class="w-full bg-surface-container-low border-0 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 appearance-none bg-none shadow-inner font-bold text-primary" required>
-                                    <option value="">Pilih Cabang Studio...</option>
-                                    @foreach($accounts as $acc)
-                                    <option value="{{ $acc->id }}" {{ old('account_id') == $acc->id ? 'selected' : '' }}>{{ $acc->name }}</option>
-                                    @endforeach
-                                </select>
-                                <x-icon name="expand_more" class="w-5 h-5 absolute right-4 top-1/2 -translate-y-1/2 text-outline-variant pointer-events-none group-focus-within:rotate-180 transition-transform" />
+                            <label for="modal_account_id" class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest px-1">Akun <span class="text-error">*</span></label>
+                            <div x-data="searchableSelect(@js($accounts->map(fn($account) => ['value' => (string) $account->id, 'label' => $account->name])->values()), @js(old('account_id', '')), 'updatePreviewId')"
+                                 @click.outside="close()"
+                                 @keydown.escape.prevent.stop="close()"
+                                 class="relative">
+                                <input type="hidden" name="account_id" :value="selected" required>
+                                <button type="button"
+                                        id="modal_account_id"
+                                        @click="toggle()"
+                                        class="w-full bg-surface-container-low rounded-xl pl-4 pr-12 py-3 text-left text-sm shadow-inner transition focus:outline-none focus:ring-2 focus:ring-primary/20"
+                                        :class="open ? 'ring-2 ring-primary/20' : ''"
+                                        :aria-expanded="open.toString()"
+                                        aria-haspopup="listbox">
+                                    <span class="block truncate"
+                                          :class="selected ? 'font-bold text-primary' : 'font-bold text-outline-variant'"
+                                          x-text="selectedLabel('Pilih Akun...')"></span>
+                                </button>
+                                <button x-show="selected"
+                                        x-cloak
+                                        type="button"
+                                        @click.stop="clear()"
+                                        class="absolute right-10 top-1/2 -translate-y-1/2 rounded-md p-1 text-outline-variant transition hover:bg-surface-container hover:text-on-surface"
+                                        aria-label="Kosongkan akun">
+                                    <x-icon name="close" class="w-4 h-4" />
+                                </button>
+                                <x-icon name="expand_more"
+                                        class="w-5 h-5 absolute right-4 top-1/2 -translate-y-1/2 text-outline-variant pointer-events-none transition-transform"
+                                        x-bind:class="open ? 'rotate-180' : ''" />
+                                <div x-show="open"
+                                     x-cloak
+                                     x-transition:enter="transition ease-out duration-150"
+                                     x-transition:enter-start="opacity-0 -translate-y-1"
+                                     x-transition:enter-end="opacity-100 translate-y-0"
+                                     class="absolute left-0 right-0 top-full z-[70] mt-2 overflow-hidden rounded-2xl border border-surface-container-low bg-surface-container-lowest shadow-2xl">
+                                    <div class="border-b border-surface-container-low p-3">
+                                        <input x-ref="searchInput" type="text" x-model="search"
+                                               class="w-full rounded-xl border-0 bg-surface-container-low px-4 py-3 text-sm shadow-inner focus:ring-2 focus:ring-primary/20"
+                                               placeholder="Cari akun..." autocomplete="off">
+                                    </div>
+                                    <div class="max-h-60 overflow-y-auto p-1.5">
+                                        <template x-if="filteredOptions().length === 0">
+                                            <div class="px-4 py-3 text-sm text-outline-variant">Akun tidak ditemukan.</div>
+                                        </template>
+                                        <template x-for="option in filteredOptions()" :key="option.value">
+                                            <button type="button" @mousedown.prevent="setSelected(option.value)"
+                                                    class="flex w-full items-center justify-between gap-3 rounded-xl px-4 py-3 text-left text-sm transition hover:bg-primary/5 hover:text-primary">
+                                                <span class="truncate font-semibold" x-text="option.label"></span>
+                                                <x-icon name="check" class="h-4 w-4 text-primary" x-show="selected === option.value"></x-icon>
+                                            </button>
+                                        </template>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         @else
@@ -221,26 +314,100 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                             <div class="space-y-2">
                                 <label for="modal_needs_category_id" class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest px-1">Jenis Kebutuhan <span class="text-error">*</span></label>
-                                <div class="relative group">
-                                    <select id="modal_needs_category_id" name="needs_category_id" class="w-full bg-surface-container-low border-0 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 appearance-none bg-none shadow-inner font-bold" required>
-                                        <option value="">Pilih Kategori...</option>
-                                        @foreach($categories as $cat)
-                                        <option value="{{ $cat->id }}" {{ old('needs_category_id') == $cat->id ? 'selected' : '' }}>{{ $cat->name }}</option>
-                                        @endforeach
-                                    </select>
-                                    <x-icon name="expand_more" class="w-5 h-5 absolute right-4 top-1/2 -translate-y-1/2 text-outline-variant pointer-events-none" />
+                                <div x-data="searchableSelect(@js($categories->map(fn($category) => ['value' => (string) $category->id, 'label' => $category->name])->values()), @js(old('needs_category_id', '')))"
+                                     @click.outside="close()"
+                                     @keydown.escape.prevent.stop="close()"
+                                     class="relative">
+                                    <input type="hidden" name="needs_category_id" :value="selected" required>
+                                    <button type="button"
+                                            id="modal_needs_category_id"
+                                            @click="toggle()"
+                                            class="w-full bg-surface-container-low rounded-xl pl-4 pr-12 py-3 text-left text-sm shadow-inner transition focus:outline-none focus:ring-2 focus:ring-primary/20"
+                                            :class="open ? 'ring-2 ring-primary/20' : ''"
+                                            :aria-expanded="open.toString()"
+                                            aria-haspopup="listbox">
+                                        <span class="block truncate"
+                                              :class="selected ? 'font-bold text-on-surface' : 'font-bold text-outline-variant'"
+                                              x-text="selectedLabel('Pilih Kategori...')"></span>
+                                    </button>
+                                    <button x-show="selected" x-cloak type="button" @click.stop="clear()"
+                                            class="absolute right-10 top-1/2 -translate-y-1/2 rounded-md p-1 text-outline-variant transition hover:bg-surface-container hover:text-on-surface"
+                                            aria-label="Kosongkan kategori">
+                                        <x-icon name="close" class="w-4 h-4" />
+                                    </button>
+                                    <x-icon name="expand_more" class="w-5 h-5 absolute right-4 top-1/2 -translate-y-1/2 text-outline-variant pointer-events-none transition-transform" x-bind:class="open ? 'rotate-180' : ''" />
+                                    <div x-show="open" x-cloak
+                                         x-transition:enter="transition ease-out duration-150"
+                                         x-transition:enter-start="opacity-0 -translate-y-1"
+                                         x-transition:enter-end="opacity-100 translate-y-0"
+                                         class="absolute left-0 right-0 top-full z-[70] mt-2 overflow-hidden rounded-2xl border border-surface-container-low bg-surface-container-lowest shadow-2xl">
+                                        <div class="border-b border-surface-container-low p-3">
+                                            <input x-ref="searchInput" type="text" x-model="search"
+                                                   class="w-full rounded-xl border-0 bg-surface-container-low px-4 py-3 text-sm shadow-inner focus:ring-2 focus:ring-primary/20"
+                                                   placeholder="Cari kategori..." autocomplete="off">
+                                        </div>
+                                        <div class="max-h-60 overflow-y-auto p-1.5">
+                                            <template x-if="filteredOptions().length === 0">
+                                                <div class="px-4 py-3 text-sm text-outline-variant">Kategori tidak ditemukan.</div>
+                                            </template>
+                                            <template x-for="option in filteredOptions()" :key="option.value">
+                                                <button type="button" @mousedown.prevent="setSelected(option.value)"
+                                                        class="flex w-full items-center justify-between gap-3 rounded-xl px-4 py-3 text-left text-sm transition hover:bg-primary/5 hover:text-primary">
+                                                    <span class="truncate font-semibold" x-text="option.label"></span>
+                                                    <x-icon name="check" class="h-4 w-4 text-primary" x-show="selected === option.value"></x-icon>
+                                                </button>
+                                            </template>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                             <div class="space-y-2">
                                 <label for="modal_status_category_id" class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest px-1">Status Prospek <span class="text-error">*</span></label>
-                                <div class="relative group">
-                                    <select id="modal_status_category_id" name="status_category_id" class="w-full bg-surface-container-low border-0 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 appearance-none bg-none shadow-inner font-bold" required>
-                                        <option value="">Pilih Status...</option>
-                                        @foreach($statuses as $st)
-                                        <option value="{{ $st->id }}" {{ old('status_category_id') == $st->id ? 'selected' : '' }}>{{ $st->name }}</option>
-                                        @endforeach
-                                    </select>
-                                    <x-icon name="expand_more" class="w-5 h-5 absolute right-4 top-1/2 -translate-y-1/2 text-outline-variant pointer-events-none" />
+                                <div x-data="searchableSelect(@js($statuses->map(fn($status) => ['value' => (string) $status->id, 'label' => $status->name])->values()), @js(old('status_category_id', '')))"
+                                     @click.outside="close()"
+                                     @keydown.escape.prevent.stop="close()"
+                                     class="relative">
+                                    <input type="hidden" name="status_category_id" :value="selected" required>
+                                    <button type="button"
+                                            id="modal_status_category_id"
+                                            @click="toggle()"
+                                            class="w-full bg-surface-container-low rounded-xl pl-4 pr-12 py-3 text-left text-sm shadow-inner transition focus:outline-none focus:ring-2 focus:ring-primary/20"
+                                            :class="open ? 'ring-2 ring-primary/20' : ''"
+                                            :aria-expanded="open.toString()"
+                                            aria-haspopup="listbox">
+                                        <span class="block truncate"
+                                              :class="selected ? 'font-bold text-on-surface' : 'font-bold text-outline-variant'"
+                                              x-text="selectedLabel('Pilih Status...')"></span>
+                                    </button>
+                                    <button x-show="selected" x-cloak type="button" @click.stop="clear()"
+                                            class="absolute right-10 top-1/2 -translate-y-1/2 rounded-md p-1 text-outline-variant transition hover:bg-surface-container hover:text-on-surface"
+                                            aria-label="Kosongkan status">
+                                        <x-icon name="close" class="w-4 h-4" />
+                                    </button>
+                                    <x-icon name="expand_more" class="w-5 h-5 absolute right-4 top-1/2 -translate-y-1/2 text-outline-variant pointer-events-none transition-transform" x-bind:class="open ? 'rotate-180' : ''" />
+                                    <div x-show="open" x-cloak
+                                         x-transition:enter="transition ease-out duration-150"
+                                         x-transition:enter-start="opacity-0 -translate-y-1"
+                                         x-transition:enter-end="opacity-100 translate-y-0"
+                                         class="absolute left-0 right-0 top-full z-[70] mt-2 overflow-hidden rounded-2xl border border-surface-container-low bg-surface-container-lowest shadow-2xl">
+                                        <div class="border-b border-surface-container-low p-3">
+                                            <input x-ref="searchInput" type="text" x-model="search"
+                                                   class="w-full rounded-xl border-0 bg-surface-container-low px-4 py-3 text-sm shadow-inner focus:ring-2 focus:ring-primary/20"
+                                                   placeholder="Cari status..." autocomplete="off">
+                                        </div>
+                                        <div class="max-h-60 overflow-y-auto p-1.5">
+                                            <template x-if="filteredOptions().length === 0">
+                                                <div class="px-4 py-3 text-sm text-outline-variant">Status tidak ditemukan.</div>
+                                            </template>
+                                            <template x-for="option in filteredOptions()" :key="option.value">
+                                                <button type="button" @mousedown.prevent="setSelected(option.value)"
+                                                        class="flex w-full items-center justify-between gap-3 rounded-xl px-4 py-3 text-left text-sm transition hover:bg-primary/5 hover:text-primary">
+                                                    <span class="truncate font-semibold" x-text="option.label"></span>
+                                                    <x-icon name="check" class="h-4 w-4 text-primary" x-show="selected === option.value"></x-icon>
+                                                </button>
+                                            </template>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -285,8 +452,7 @@
              x-transition:leave-start="opacity-100"
              x-transition:leave-end="opacity-0">
             
-            <div @click.away="showEditModal = false" 
-                 class="bg-surface-container-lowest w-full sm:max-w-2xl sm:rounded-2xl shadow-2xl flex flex-col max-h-[90vh] sm:max-h-[85vh] rounded-t-3xl sm:rounded-t-2xl animate-fade-in"
+            <div class="bg-surface-container-lowest w-full sm:max-w-2xl sm:rounded-2xl shadow-2xl flex flex-col max-h-[90vh] sm:max-h-[85vh] rounded-t-3xl sm:rounded-t-2xl animate-fade-in"
                  x-transition:enter="transition ease-out duration-300 delay-75"
                  x-transition:enter-start="opacity-0 translate-y-10"
                  x-transition:enter-end="opacity-100 translate-y-0">
@@ -339,14 +505,64 @@
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                                 <div class="space-y-2">
                                     <label for="edit_province" class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest px-1">Provinsi Domisili</label>
-                                    <div class="relative group">
-                                        <select id="edit_province" name="province" x-model="editData.province" class="w-full bg-surface-container-low border-0 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 appearance-none bg-none shadow-inner font-medium">
-                                            <option value="">Pilih Provinsi...</option>
-                                            @foreach($provinces as $prov)
-                                            <option value="{{ $prov }}">{{ $prov }}</option>
-                                            @endforeach
-                                        </select>
-                                        <x-icon name="expand_more" class="w-5 h-5 absolute right-4 top-1/2 -translate-y-1/2 text-outline-variant pointer-events-none group-focus-within:rotate-180 transition-transform" />
+                                    <div x-data="searchableOptions(@js($provinces))"
+                                         @click.outside="close()"
+                                         @keydown.escape.prevent.stop="close()"
+                                         class="relative">
+                                        <input type="hidden" name="province" :value="editData.province || ''">
+                                        <button type="button"
+                                                id="edit_province"
+                                                @click="toggle()"
+                                                class="w-full bg-surface-container-low rounded-xl pl-4 pr-12 py-3 text-left text-sm shadow-inner transition focus:outline-none focus:ring-2 focus:ring-primary/20"
+                                                :class="open ? 'ring-2 ring-primary/20' : ''"
+                                                :aria-expanded="open.toString()"
+                                                aria-haspopup="listbox">
+                                            <span class="block truncate"
+                                                  :class="editData.province ? 'font-medium text-on-surface' : 'font-medium text-outline-variant'"
+                                                  x-text="editData.province || 'Pilih Provinsi...'"></span>
+                                        </button>
+                                        <button x-show="editData.province"
+                                                x-cloak
+                                                type="button"
+                                                @click.stop="editData.province = ''; close()"
+                                                class="absolute right-10 top-1/2 -translate-y-1/2 rounded-md p-1 text-outline-variant transition hover:bg-surface-container hover:text-on-surface"
+                                                aria-label="Kosongkan provinsi">
+                                            <x-icon name="close" class="w-4 h-4" />
+                                        </button>
+                                        <x-icon name="expand_more"
+                                                class="w-5 h-5 absolute right-4 top-1/2 -translate-y-1/2 text-outline-variant pointer-events-none transition-transform"
+                                                x-bind:class="open ? 'rotate-180' : ''" />
+
+                                        <div x-show="open"
+                                             x-cloak
+                                             x-transition:enter="transition ease-out duration-150"
+                                             x-transition:enter-start="opacity-0 -translate-y-1"
+                                             x-transition:enter-end="opacity-100 translate-y-0"
+                                             class="absolute left-0 right-0 top-full z-[70] mt-2 overflow-hidden rounded-2xl border border-surface-container-low bg-surface-container-lowest shadow-2xl">
+                                            <div class="border-b border-surface-container-low p-3">
+                                                <input x-ref="searchInput"
+                                                       type="text"
+                                                       x-model="search"
+                                                       class="w-full rounded-xl border-0 bg-surface-container-low px-4 py-3 text-sm shadow-inner focus:ring-2 focus:ring-primary/20"
+                                                       placeholder="Cari provinsi..."
+                                                       autocomplete="off">
+                                            </div>
+                                            <div class="max-h-60 overflow-y-auto p-1.5">
+                                                <template x-if="filteredOptions().length === 0">
+                                                    <div class="px-4 py-3 text-sm text-outline-variant">Provinsi tidak ditemukan.</div>
+                                                </template>
+                                                <template x-for="option in filteredOptions()" :key="option.value">
+                                                    <button type="button"
+                                                            @mousedown.prevent="editData.province = option.value; close()"
+                                                            class="flex w-full items-center justify-between gap-3 rounded-xl px-4 py-3 text-left text-sm transition hover:bg-primary/5 hover:text-primary">
+                                                        <span class="truncate font-semibold" x-text="option.label"></span>
+                                                        <x-icon name="check"
+                                                                class="h-4 w-4 text-primary"
+                                                                x-show="editData.province === option.value"></x-icon>
+                                                    </button>
+                                                </template>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="space-y-2">
@@ -376,15 +592,54 @@
                         {{-- Account Selection (Super Admin Only) --}}
                         @if(auth()->user()->isSuperAdmin())
                         <div class="space-y-2">
-                            <label for="edit_account_id" class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest px-1">Akun Cabin Interior <span class="text-error">*</span></label>
-                            <div class="relative group">
-                                <select id="edit_account_id" name="account_id" x-model="editData.account_id" class="w-full bg-surface-container-low border-0 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 appearance-none bg-none shadow-inner font-bold text-primary" required>
-                                    <option value="">Pilih Cabin Studio...</option>
-                                    @foreach($accounts as $acc)
-                                    <option value="{{ $acc->id }}">{{ $acc->name }}</option>
-                                    @endforeach
-                                </select>
-                                <x-icon name="expand_more" class="w-5 h-5 absolute right-4 top-1/2 -translate-y-1/2 text-outline-variant pointer-events-none group-focus-within:rotate-180 transition-transform" />
+                            <label for="edit_account_id" class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest px-1">Akun <span class="text-error">*</span></label>
+                            <div x-data="searchableSelect(@js($accounts->map(fn($account) => ['value' => (string) $account->id, 'label' => $account->name])->values()))"
+                                 x-init="$watch('selected', value => { editData.account_id = value; updatePreviewId(value); })"
+                                 x-effect="if (selected !== String(editData.account_id || '')) selected = String(editData.account_id || '')"
+                                 @click.outside="close()"
+                                 @keydown.escape.prevent.stop="close()"
+                                 class="relative">
+                                <input type="hidden" name="account_id" :value="selected" required>
+                                <button type="button"
+                                        id="edit_account_id"
+                                        @click="toggle()"
+                                        class="w-full bg-surface-container-low rounded-xl pl-4 pr-12 py-3 text-left text-sm shadow-inner transition focus:outline-none focus:ring-2 focus:ring-primary/20"
+                                        :class="open ? 'ring-2 ring-primary/20' : ''"
+                                        :aria-expanded="open.toString()"
+                                        aria-haspopup="listbox">
+                                    <span class="block truncate"
+                                          :class="selected ? 'font-bold text-primary' : 'font-bold text-outline-variant'"
+                                          x-text="selectedLabel('Pilih Akun...')"></span>
+                                </button>
+                                <button x-show="selected" x-cloak type="button" @click.stop="clear()"
+                                        class="absolute right-10 top-1/2 -translate-y-1/2 rounded-md p-1 text-outline-variant transition hover:bg-surface-container hover:text-on-surface"
+                                        aria-label="Kosongkan akun">
+                                    <x-icon name="close" class="w-4 h-4" />
+                                </button>
+                                <x-icon name="expand_more" class="w-5 h-5 absolute right-4 top-1/2 -translate-y-1/2 text-outline-variant pointer-events-none transition-transform" x-bind:class="open ? 'rotate-180' : ''" />
+                                <div x-show="open" x-cloak
+                                     x-transition:enter="transition ease-out duration-150"
+                                     x-transition:enter-start="opacity-0 -translate-y-1"
+                                     x-transition:enter-end="opacity-100 translate-y-0"
+                                     class="absolute left-0 right-0 top-full z-[70] mt-2 overflow-hidden rounded-2xl border border-surface-container-low bg-surface-container-lowest shadow-2xl">
+                                    <div class="border-b border-surface-container-low p-3">
+                                        <input x-ref="searchInput" type="text" x-model="search"
+                                               class="w-full rounded-xl border-0 bg-surface-container-low px-4 py-3 text-sm shadow-inner focus:ring-2 focus:ring-primary/20"
+                                               placeholder="Cari akun..." autocomplete="off">
+                                    </div>
+                                    <div class="max-h-60 overflow-y-auto p-1.5">
+                                        <template x-if="filteredOptions().length === 0">
+                                            <div class="px-4 py-3 text-sm text-outline-variant">Akun tidak ditemukan.</div>
+                                        </template>
+                                        <template x-for="option in filteredOptions()" :key="option.value">
+                                            <button type="button" @mousedown.prevent="setSelected(option.value)"
+                                                    class="flex w-full items-center justify-between gap-3 rounded-xl px-4 py-3 text-left text-sm transition hover:bg-primary/5 hover:text-primary">
+                                                <span class="truncate font-semibold" x-text="option.label"></span>
+                                                <x-icon name="check" class="h-4 w-4 text-primary" x-show="selected === option.value"></x-icon>
+                                            </button>
+                                        </template>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         @else
@@ -395,26 +650,104 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                             <div class="space-y-2">
                                 <label for="edit_needs_category_id" class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest px-1">Jenis Kebutuhan <span class="text-error">*</span></label>
-                                <div class="relative group">
-                                    <select id="edit_needs_category_id" name="needs_category_id" x-model="editData.needs_category_id" class="w-full bg-surface-container-low border-0 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 appearance-none bg-none shadow-inner font-bold" required>
-                                        <option value="">Pilih Kategori...</option>
-                                        @foreach($categories as $cat)
-                                        <option value="{{ $cat->id }}">{{ $cat->name }}</option>
-                                        @endforeach
-                                    </select>
-                                    <x-icon name="expand_more" class="w-5 h-5 absolute right-4 top-1/2 -translate-y-1/2 text-outline-variant pointer-events-none" />
+                                <div x-data="searchableSelect(@js($categories->map(fn($category) => ['value' => (string) $category->id, 'label' => $category->name])->values()))"
+                                     x-init="$watch('selected', value => editData.needs_category_id = value)"
+                                     x-effect="if (selected !== String(editData.needs_category_id || '')) selected = String(editData.needs_category_id || '')"
+                                     @click.outside="close()"
+                                     @keydown.escape.prevent.stop="close()"
+                                     class="relative">
+                                    <input type="hidden" name="needs_category_id" :value="selected" required>
+                                    <button type="button"
+                                            id="edit_needs_category_id"
+                                            @click="toggle()"
+                                            class="w-full bg-surface-container-low rounded-xl pl-4 pr-12 py-3 text-left text-sm shadow-inner transition focus:outline-none focus:ring-2 focus:ring-primary/20"
+                                            :class="open ? 'ring-2 ring-primary/20' : ''"
+                                            :aria-expanded="open.toString()"
+                                            aria-haspopup="listbox">
+                                        <span class="block truncate"
+                                              :class="selected ? 'font-bold text-on-surface' : 'font-bold text-outline-variant'"
+                                              x-text="selectedLabel('Pilih Kategori...')"></span>
+                                    </button>
+                                    <button x-show="selected" x-cloak type="button" @click.stop="clear()"
+                                            class="absolute right-10 top-1/2 -translate-y-1/2 rounded-md p-1 text-outline-variant transition hover:bg-surface-container hover:text-on-surface"
+                                            aria-label="Kosongkan kategori">
+                                        <x-icon name="close" class="w-4 h-4" />
+                                    </button>
+                                    <x-icon name="expand_more" class="w-5 h-5 absolute right-4 top-1/2 -translate-y-1/2 text-outline-variant pointer-events-none transition-transform" x-bind:class="open ? 'rotate-180' : ''" />
+                                    <div x-show="open" x-cloak
+                                         x-transition:enter="transition ease-out duration-150"
+                                         x-transition:enter-start="opacity-0 -translate-y-1"
+                                         x-transition:enter-end="opacity-100 translate-y-0"
+                                         class="absolute left-0 right-0 top-full z-[70] mt-2 overflow-hidden rounded-2xl border border-surface-container-low bg-surface-container-lowest shadow-2xl">
+                                        <div class="border-b border-surface-container-low p-3">
+                                            <input x-ref="searchInput" type="text" x-model="search"
+                                                   class="w-full rounded-xl border-0 bg-surface-container-low px-4 py-3 text-sm shadow-inner focus:ring-2 focus:ring-primary/20"
+                                                   placeholder="Cari kategori..." autocomplete="off">
+                                        </div>
+                                        <div class="max-h-60 overflow-y-auto p-1.5">
+                                            <template x-if="filteredOptions().length === 0">
+                                                <div class="px-4 py-3 text-sm text-outline-variant">Kategori tidak ditemukan.</div>
+                                            </template>
+                                            <template x-for="option in filteredOptions()" :key="option.value">
+                                                <button type="button" @mousedown.prevent="setSelected(option.value)"
+                                                        class="flex w-full items-center justify-between gap-3 rounded-xl px-4 py-3 text-left text-sm transition hover:bg-primary/5 hover:text-primary">
+                                                    <span class="truncate font-semibold" x-text="option.label"></span>
+                                                    <x-icon name="check" class="h-4 w-4 text-primary" x-show="selected === option.value"></x-icon>
+                                                </button>
+                                            </template>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                             <div class="space-y-2">
                                 <label for="edit_status_category_id" class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest px-1">Status Prospek <span class="text-error">*</span></label>
-                                <div class="relative group">
-                                    <select id="edit_status_category_id" name="status_category_id" x-model="editData.status_category_id" class="w-full bg-surface-container-low border-0 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 appearance-none bg-none shadow-inner font-bold" required>
-                                        <option value="">Pilih Status...</option>
-                                        @foreach($statuses as $st)
-                                        <option value="{{ $st->id }}">{{ $st->name }}</option>
-                                        @endforeach
-                                    </select>
-                                    <x-icon name="expand_more" class="w-5 h-5 absolute right-4 top-1/2 -translate-y-1/2 text-outline-variant pointer-events-none" />
+                                <div x-data="searchableSelect(@js($statuses->map(fn($status) => ['value' => (string) $status->id, 'label' => $status->name])->values()))"
+                                     x-init="$watch('selected', value => editData.status_category_id = value)"
+                                     x-effect="if (selected !== String(editData.status_category_id || '')) selected = String(editData.status_category_id || '')"
+                                     @click.outside="close()"
+                                     @keydown.escape.prevent.stop="close()"
+                                     class="relative">
+                                    <input type="hidden" name="status_category_id" :value="selected" required>
+                                    <button type="button"
+                                            id="edit_status_category_id"
+                                            @click="toggle()"
+                                            class="w-full bg-surface-container-low rounded-xl pl-4 pr-12 py-3 text-left text-sm shadow-inner transition focus:outline-none focus:ring-2 focus:ring-primary/20"
+                                            :class="open ? 'ring-2 ring-primary/20' : ''"
+                                            :aria-expanded="open.toString()"
+                                            aria-haspopup="listbox">
+                                        <span class="block truncate"
+                                              :class="selected ? 'font-bold text-on-surface' : 'font-bold text-outline-variant'"
+                                              x-text="selectedLabel('Pilih Status...')"></span>
+                                    </button>
+                                    <button x-show="selected" x-cloak type="button" @click.stop="clear()"
+                                            class="absolute right-10 top-1/2 -translate-y-1/2 rounded-md p-1 text-outline-variant transition hover:bg-surface-container hover:text-on-surface"
+                                            aria-label="Kosongkan status">
+                                        <x-icon name="close" class="w-4 h-4" />
+                                    </button>
+                                    <x-icon name="expand_more" class="w-5 h-5 absolute right-4 top-1/2 -translate-y-1/2 text-outline-variant pointer-events-none transition-transform" x-bind:class="open ? 'rotate-180' : ''" />
+                                    <div x-show="open" x-cloak
+                                         x-transition:enter="transition ease-out duration-150"
+                                         x-transition:enter-start="opacity-0 -translate-y-1"
+                                         x-transition:enter-end="opacity-100 translate-y-0"
+                                         class="absolute left-0 right-0 top-full z-[70] mt-2 overflow-hidden rounded-2xl border border-surface-container-low bg-surface-container-lowest shadow-2xl">
+                                        <div class="border-b border-surface-container-low p-3">
+                                            <input x-ref="searchInput" type="text" x-model="search"
+                                                   class="w-full rounded-xl border-0 bg-surface-container-low px-4 py-3 text-sm shadow-inner focus:ring-2 focus:ring-primary/20"
+                                                   placeholder="Cari status..." autocomplete="off">
+                                        </div>
+                                        <div class="max-h-60 overflow-y-auto p-1.5">
+                                            <template x-if="filteredOptions().length === 0">
+                                                <div class="px-4 py-3 text-sm text-outline-variant">Status tidak ditemukan.</div>
+                                            </template>
+                                            <template x-for="option in filteredOptions()" :key="option.value">
+                                                <button type="button" @mousedown.prevent="setSelected(option.value)"
+                                                        class="flex w-full items-center justify-between gap-3 rounded-xl px-4 py-3 text-left text-sm transition hover:bg-primary/5 hover:text-primary">
+                                                    <span class="truncate font-semibold" x-text="option.label"></span>
+                                                    <x-icon name="check" class="h-4 w-4 text-primary" x-show="selected === option.value"></x-icon>
+                                                </button>
+                                            </template>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -493,24 +826,96 @@
             {{-- Status Filter --}}
             <div>
                 <label class="block text-[10px] font-extrabold text-on-surface-variant uppercase tracking-widest mb-1.5 px-1 opacity-70">Status</label>
-                <select name="status" class="w-full bg-surface-container-low border-0 rounded-xl py-2.5 text-sm focus:ring-2 focus:ring-primary/20 shadow-inner font-semibold text-on-surface-variant">
-                    <option value="">Semua Status</option>
-                    @foreach($statuses as $status)
-                    <option value="{{ $status->id }}" {{ request('status') == $status->id ? 'selected' : '' }}>{{ $status->name }}</option>
-                    @endforeach
-                </select>
+                <div x-data="searchableSelect(@js(collect([['value' => '', 'label' => 'Semua Status']])->concat($statuses->map(fn($status) => ['value' => (string) $status->id, 'label' => $status->name])->values())), @js((string) request('status', '')))"
+                     @click.outside="close()"
+                     @keydown.escape.prevent.stop="close()"
+                     class="relative">
+                    <input type="hidden" name="status" :value="selected">
+                    <button type="button"
+                            @click="toggle()"
+                            class="w-full bg-surface-container-low rounded-xl pl-4 pr-12 py-2.5 text-left text-sm shadow-inner transition focus:outline-none focus:ring-2 focus:ring-primary/20"
+                            :class="open ? 'ring-2 ring-primary/20' : ''"
+                            :aria-expanded="open.toString()"
+                            aria-haspopup="listbox">
+                        <span class="block truncate font-semibold text-on-surface-variant"
+                              x-text="selectedLabel('Semua Status')"></span>
+                    </button>
+                    <x-icon name="expand_more"
+                            class="w-5 h-5 absolute right-4 top-1/2 -translate-y-1/2 text-outline-variant pointer-events-none transition-transform"
+                            x-bind:class="open ? 'rotate-180' : ''" />
+                    <div x-show="open"
+                         x-cloak
+                         x-transition:enter="transition ease-out duration-150"
+                         x-transition:enter-start="opacity-0 -translate-y-1"
+                         x-transition:enter-end="opacity-100 translate-y-0"
+                         class="absolute left-0 right-0 top-full z-40 mt-2 overflow-hidden rounded-2xl border border-surface-container-low bg-surface-container-lowest shadow-2xl">
+                        <div class="border-b border-surface-container-low p-3">
+                            <input x-ref="searchInput" type="text" x-model="search"
+                                   class="w-full rounded-xl border-0 bg-surface-container-low px-4 py-3 text-sm shadow-inner focus:ring-2 focus:ring-primary/20"
+                                   placeholder="Cari status..." autocomplete="off">
+                        </div>
+                        <div class="max-h-60 overflow-y-auto p-1.5">
+                            <template x-if="filteredOptions().length === 0">
+                                <div class="px-4 py-3 text-sm text-outline-variant">Status tidak ditemukan.</div>
+                            </template>
+                            <template x-for="option in filteredOptions()" :key="option.value">
+                                <button type="button" @mousedown.prevent="setSelected(option.value)"
+                                        class="flex w-full items-center justify-between gap-3 rounded-xl px-4 py-3 text-left text-sm transition hover:bg-primary/5 hover:text-primary">
+                                    <span class="truncate font-semibold" x-text="option.label"></span>
+                                    <x-icon name="check" class="h-4 w-4 text-primary" x-show="selected === option.value"></x-icon>
+                                </button>
+                            </template>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             {{-- Account Filter (Super Admin) --}}
             @if(auth()->user()->isSuperAdmin())
             <div>
                 <label class="block text-[10px] font-extrabold text-on-surface-variant uppercase tracking-widest mb-1.5 px-1 opacity-70">Account</label>
-                <select name="account" class="w-full bg-surface-container-low border-0 rounded-xl py-2.5 text-sm focus:ring-2 focus:ring-primary/20 shadow-inner font-semibold text-on-surface-variant">
-                    <option value="">Semua Akun</option>
-                    @foreach($accounts as $account)
-                    <option value="{{ $account->id }}" {{ request('account') == $account->id ? 'selected' : '' }}>{{ $account->name }}</option>
-                    @endforeach
-                </select>
+                <div x-data="searchableSelect(@js(collect([['value' => '', 'label' => 'Semua Akun']])->concat($accounts->map(fn($account) => ['value' => (string) $account->id, 'label' => $account->name])->values())), @js((string) request('account', '')))"
+                     @click.outside="close()"
+                     @keydown.escape.prevent.stop="close()"
+                     class="relative">
+                    <input type="hidden" name="account" :value="selected">
+                    <button type="button"
+                            @click="toggle()"
+                            class="w-full bg-surface-container-low rounded-xl pl-4 pr-12 py-2.5 text-left text-sm shadow-inner transition focus:outline-none focus:ring-2 focus:ring-primary/20"
+                            :class="open ? 'ring-2 ring-primary/20' : ''"
+                            :aria-expanded="open.toString()"
+                            aria-haspopup="listbox">
+                        <span class="block truncate font-semibold text-on-surface-variant"
+                              x-text="selectedLabel('Semua Akun')"></span>
+                    </button>
+                    <x-icon name="expand_more"
+                            class="w-5 h-5 absolute right-4 top-1/2 -translate-y-1/2 text-outline-variant pointer-events-none transition-transform"
+                            x-bind:class="open ? 'rotate-180' : ''" />
+                    <div x-show="open"
+                         x-cloak
+                         x-transition:enter="transition ease-out duration-150"
+                         x-transition:enter-start="opacity-0 -translate-y-1"
+                         x-transition:enter-end="opacity-100 translate-y-0"
+                         class="absolute left-0 right-0 top-full z-40 mt-2 overflow-hidden rounded-2xl border border-surface-container-low bg-surface-container-lowest shadow-2xl">
+                        <div class="border-b border-surface-container-low p-3">
+                            <input x-ref="searchInput" type="text" x-model="search"
+                                   class="w-full rounded-xl border-0 bg-surface-container-low px-4 py-3 text-sm shadow-inner focus:ring-2 focus:ring-primary/20"
+                                   placeholder="Cari akun..." autocomplete="off">
+                        </div>
+                        <div class="max-h-60 overflow-y-auto p-1.5">
+                            <template x-if="filteredOptions().length === 0">
+                                <div class="px-4 py-3 text-sm text-outline-variant">Akun tidak ditemukan.</div>
+                            </template>
+                            <template x-for="option in filteredOptions()" :key="option.value">
+                                <button type="button" @mousedown.prevent="setSelected(option.value)"
+                                        class="flex w-full items-center justify-between gap-3 rounded-xl px-4 py-3 text-left text-sm transition hover:bg-primary/5 hover:text-primary">
+                                    <span class="truncate font-semibold" x-text="option.label"></span>
+                                    <x-icon name="check" class="h-4 w-4 text-primary" x-show="selected === option.value"></x-icon>
+                                </button>
+                            </template>
+                        </div>
+                    </div>
+                </div>
             </div>
             @endif
         </div>
@@ -530,9 +935,57 @@
     </form>
 </div>
 
+@if($recentImports->isNotEmpty())
+<div class="bg-surface-container-lowest rounded-2xl shadow-sm border border-surface-container-low p-4 sm:p-6 mb-6">
+    <div class="flex items-center justify-between gap-3 mb-4">
+        <div>
+            <h3 class="font-bold text-on-surface">Riwayat Import CSV</h3>
+            <p class="text-xs text-on-surface-variant">Pantau proses import yang sudah masuk antrean background.</p>
+        </div>
+    </div>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
+        @foreach($recentImports as $import)
+        <div class="rounded-xl border border-surface-container-low bg-surface-container-low/40 p-4">
+            <div class="flex items-start justify-between gap-3">
+                <div class="min-w-0">
+                    <p class="text-sm font-bold text-on-surface truncate">{{ $import->original_name }}</p>
+                    <p class="text-[11px] text-on-surface-variant mt-1">
+                        Diunggah {{ $import->created_at->diffForHumans() }}
+                    </p>
+                </div>
+                <span class="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest
+                    {{ $import->status === 'completed' ? 'bg-tertiary/10 text-tertiary' : '' }}
+                    {{ $import->status === 'failed' ? 'bg-error/10 text-error' : '' }}
+                    {{ in_array($import->status, ['queued', 'processing']) ? 'bg-primary/10 text-primary' : '' }}">
+                    {{ $import->status }}
+                </span>
+            </div>
+            <div class="grid grid-cols-3 gap-2 mt-4 text-center">
+                <div class="rounded-lg bg-white/70 px-2 py-2">
+                    <div class="text-[10px] uppercase tracking-widest text-on-surface-variant">Sukses</div>
+                    <div class="text-sm font-bold text-on-surface mt-1">{{ $import->success_count }}</div>
+                </div>
+                <div class="rounded-lg bg-white/70 px-2 py-2">
+                    <div class="text-[10px] uppercase tracking-widest text-on-surface-variant">Duplikat</div>
+                    <div class="text-sm font-bold text-on-surface mt-1">{{ $import->duplicate_count }}</div>
+                </div>
+                <div class="rounded-lg bg-white/70 px-2 py-2">
+                    <div class="text-[10px] uppercase tracking-widest text-on-surface-variant">Error</div>
+                    <div class="text-sm font-bold text-on-surface mt-1">{{ $import->error_count }}</div>
+                </div>
+            </div>
+            @if($import->error_preview)
+            <p class="text-xs text-error mt-3 whitespace-pre-line">{{ $import->error_preview }}</p>
+            @endif
+        </div>
+        @endforeach
+    </div>
+</div>
+@endif
+
 {{-- Data Table --}}
 <div class="bg-surface-container-lowest rounded-2xl shadow-sm overflow-hidden flex flex-col">
-    <div class="overflow-x-auto scrollbar-thin scrollbar-thumb-surface-container shadow-inner">
+    <div class="table-scroll-mobile overflow-x-auto scrollbar-thin scrollbar-thumb-surface-container shadow-inner">
         <table class="w-full min-w-[750px] text-left border-collapse whitespace-nowrap">
             <thead>
                 <tr class="bg-surface-container-low/50">
@@ -540,7 +993,7 @@
                     <th class="px-6 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest leading-none">Nama Klien</th>
                     <th class="px-6 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest leading-none">Telepon</th>
                     @if(auth()->user()->isSuperAdmin())
-                    <th class="px-6 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest leading-none">Cabang</th>
+                    <th class="px-6 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest leading-none">Akun</th>
                     @endif
                     <th class="px-6 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest leading-none">Kebutuhan</th>
                     <th class="px-6 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest leading-none">Status</th>
@@ -575,7 +1028,8 @@
                         <span class="text-sm font-medium text-on-surface-variant">{{ $c->needsCategory?->name ?? 'Belum Ada' }}</span>
                     </td>
                     <td class="px-6 py-4">
-                        <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider {{ $c->statusCategory->css_class ?? 'bg-surface-container text-on-surface-variant' }}">
+                        <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider"
+                              style="{{ $c->statusCategory?->chip_style ?? 'background-color: rgba(115, 124, 127, 0.14); color: #737C7F;' }}">
                             {{ $c->statusCategory?->name ?? '-' }}
                         </span>
                     </td>
@@ -642,122 +1096,4 @@
     @endif
 </div>
 
-@push('scripts')
-<script>
-    function confirmDelete(formId, clientName) {
-        Swal.fire({
-            title: 'Hapus data konsultasi?',
-            text: "Data lead atas nama '" + clientName + "' akan terhapus secara permanen dari sistem!",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#9f403d',
-            cancelButtonColor: '#737c7f',
-            confirmButtonText: 'Ya, hapus!',
-            cancelButtonText: 'Batal',
-            customClass: {
-                popup: 'rounded-2xl shadow-2xl',
-                title: 'text-xl font-headline font-bold text-on-surface',
-                confirmButton: 'bg-error hover:bg-error-dim rounded-xl px-8 py-3 font-bold',
-                cancelButton: 'bg-outline hover:bg-outline-variant rounded-xl px-8 py-3 font-bold'
-            }
-        }).then((result) => {
-            if (result.isConfirmed) {
-                document.getElementById(formId).submit();
-            }
-        });
-    }
-
-    function modalCityAutoFill() {
-        return {
-            city: '{{ old("city", "") }}',
-            province: '{{ old("province", "") }}',
-            loading: false,
-            suggestions: [],
-            showSuggestions: false,
-            _mapping: null,
-
-            async getMapping() {
-                if (this._mapping) return this._mapping;
-                try {
-                    const res = await fetch('{{ route("api.wilayah.kota") }}');
-                    this._mapping = await res.json();
-                } catch (e) {
-                    this._mapping = {};
-                }
-                return this._mapping;
-            },
-
-            async onCityInput() {
-                const val = this.city.trim().toLowerCase();
-                if (val.length < 2) { this.suggestions = []; this.showSuggestions = false; return; }
-
-                const mapping = await this.getMapping();
-                this.suggestions = Object.entries(mapping)
-                    .filter(([kota]) => kota.toLowerCase().includes(val))
-                    .slice(0, 8)
-                    .map(([kota, prov]) => ({ city: kota, province: prov }));
-                this.showSuggestions = this.suggestions.length > 0;
-            },
-
-            selectCity(item) {
-                this.city = item.city;
-                this.province = item.province;
-                this.showSuggestions = false;
-                this.suggestions = [];
-            }
-        };
-    }
-
-    function updatePreviewId(accountId) {
-        const el = document.getElementById('preview-consultation-id');
-        if (!accountId || !el) return;
-        el.style.opacity = '0.5';
-        fetch('{{ route("api.consultation-id-preview") }}?account_id=' + accountId, {
-            headers: { 'Accept': 'application/json' }
-        })
-        .then(res => res.json())
-        .then(data => {
-            el.textContent = data.id;
-            el.style.opacity = '1';
-        })
-        .catch(() => { el.style.opacity = '1'; });
-    }
-
-    function buildConsultationUpdateUrl(id) {
-        if (!id) return '#';
-        return '{{ url('consultations') }}/' + id;
-    }
-
-    // Edit Modal Handler
-    document.addEventListener('DOMContentLoaded', function() {
-        document.querySelectorAll('.btn-edit').forEach(function(btn) {
-            btn.addEventListener('click', function() {
-                const data = {
-                    id: this.getAttribute('data-id'),
-                    consultation_id: this.getAttribute('data-consultation-id'),
-                    client_name: this.getAttribute('data-name'),
-                    phone: this.getAttribute('data-phone'),
-                    province: this.getAttribute('data-province'),
-                    city: this.getAttribute('data-city'),
-                    district: this.getAttribute('data-district'),
-                    address: this.getAttribute('data-address'),
-                    account_id: this.getAttribute('data-account'),
-                    needs_category_id: this.getAttribute('data-category'),
-                    status_category_id: this.getAttribute('data-status'),
-                    consultation_date: this.getAttribute('data-date'),
-                    notes: this.getAttribute('data-notes')
-                };
-                
-                // Alpine data access
-                const alpineEl = document.getElementById('consultations-page');
-                if (alpineEl && window.Alpine) {
-                    const alpineData = Alpine.$data(alpineEl);
-                    alpineData.editData = data;
-                    alpineData.showEditModal = true;
-                }
-            });
-        });
-    });
-</script>
-@endpush
 @endsection

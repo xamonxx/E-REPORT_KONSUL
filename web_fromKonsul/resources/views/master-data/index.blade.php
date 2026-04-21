@@ -11,7 +11,17 @@
 </div>
 
 {{-- Tab Navigation --}}
-<div x-data="{ activeTab: '{{ $tab }}' }">
+<div x-data="masterDataPage({
+        initialTab: @js(old('edit_user_id') ? 'users' : $tab),
+        showEditUserModal: {{ old('edit_user_id') ? 'true' : 'false' }},
+        editUser: {
+            id: @js(old('edit_user_id', '')),
+            name: @js(old('name', '')),
+            email: @js(old('email', '')),
+            role: @js(old('role', 'admin')),
+            account_id: @js((string) old('account_id', '')),
+        }
+    })" x-init="init()">
     <div class="flex overflow-x-auto scrollbar-none bg-surface-container-lowest p-1.5 rounded-xl shadow-sm w-full sm:w-fit mb-8 gap-1 scroll-px-2 no-print">
         <button @click="activeTab = 'categories'"
            :class="activeTab === 'categories' ? 'bg-primary text-on-primary shadow-lg shadow-primary/20' : 'text-on-surface-variant hover:bg-surface-container-low'"
@@ -62,7 +72,7 @@
             <h3 class="font-bold text-on-surface font-headline">Daftar Kategori Kebutuhan</h3>
             <p class="text-xs text-on-surface-variant mt-1">{{ $categories->total() }} kategori terdaftar dalam sistem</p>
         </div>
-        <div class="overflow-x-auto scrollbar-thin scrollbar-thumb-surface-container">
+        <div class="table-scroll-mobile overflow-x-auto scrollbar-thin scrollbar-thumb-surface-container">
             <table class="w-full min-w-[500px] text-left border-collapse whitespace-nowrap">
                 <thead>
                     <tr class="bg-surface-container-low/50">
@@ -165,7 +175,7 @@
             <h3 class="font-bold text-on-surface font-headline">Manajemen Status Prospek</h3>
             <p class="text-xs text-on-surface-variant mt-1">{{ $statuses->total() }} status aktif dalam sistem</p>
         </div>
-        <div class="overflow-x-auto scrollbar-thin scrollbar-thumb-surface-container">
+        <div class="table-scroll-mobile overflow-x-auto scrollbar-thin scrollbar-thumb-surface-container">
             <table class="w-full min-w-[550px] text-left border-collapse whitespace-nowrap">
                 <thead>
                     <tr class="bg-surface-container-low/50">
@@ -245,7 +255,7 @@
                 <label class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest px-1">Alamat Email</label>
                 <input type="email" name="email" required value="{{ old('email') }}"
                        class="w-full bg-surface-container-low border-0 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 shadow-inner font-bold"
-                       placeholder="admin@studio.com" />
+                       placeholder="admin@akun.com" />
             </div>
             <div class="space-y-2">
                 <label class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest px-1">Set Password</label>
@@ -256,7 +266,7 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div class="space-y-2">
                     <label class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest px-1">Pilih Role</label>
-                    <select name="role" id="roleSelect" required onchange="toggleAccountField()"
+                    <select name="role" id="roleSelect" required @change="toggleAccountField()"
                             class="w-full bg-surface-container-low border-0 rounded-xl py-3 text-sm focus:ring-2 focus:ring-primary/20 font-bold shadow-inner px-4">
                         <option value="admin" {{ old('role') === 'admin' ? 'selected' : '' }}>Admin </option>
                         <option value="super_admin" {{ old('role') === 'super_admin' ? 'selected' : '' }}>Super Admin</option>
@@ -264,13 +274,48 @@
                 </div>
                 <div class="space-y-2" id="accountField">
                     <label class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest px-1">Pilih Akun</label>
-                    <select name="account_id"
-                            class="w-full bg-surface-container-low border-0 rounded-xl py-3 text-sm focus:ring-2 focus:ring-primary/20 font-bold shadow-inner px-4">
-                        <option value="">— Akun —</option>
-                        @foreach($accounts as $account)
-                        <option value="{{ $account->id }}" {{ old('account_id') == $account->id ? 'selected' : '' }}>{{ $account->name }}</option>
-                        @endforeach
-                    </select>
+                    <div x-data="searchableSelect(@js(collect([['value' => '', 'label' => '-- Akun --']])->concat($accounts->map(fn($account) => ['value' => (string) $account->id, 'label' => $account->name])->values())), @js((string) old('account_id', '')))"
+                         @click.outside="close()"
+                         @keydown.escape.prevent.stop="close()"
+                         class="relative">
+                        <input type="hidden" name="account_id" :value="selected">
+                        <button type="button"
+                                @click="toggle()"
+                                class="w-full bg-surface-container-low rounded-xl pl-4 pr-12 py-3 text-left text-sm shadow-inner transition focus:outline-none focus:ring-2 focus:ring-primary/20"
+                                :class="open ? 'ring-2 ring-primary/20' : ''"
+                                :aria-expanded="open.toString()"
+                                aria-haspopup="listbox">
+                            <span class="block truncate font-bold text-on-surface"
+                                  x-text="selectedLabel('-- Akun --')"></span>
+                        </button>
+                        <x-icon name="expand_more"
+                                class="w-5 h-5 absolute right-4 top-1/2 -translate-y-1/2 text-outline-variant pointer-events-none transition-transform"
+                                x-bind:class="open ? 'rotate-180' : ''" />
+                        <div x-show="open"
+                             x-cloak
+                             x-transition:enter="transition ease-out duration-150"
+                             x-transition:enter-start="opacity-0 -translate-y-1"
+                             x-transition:enter-end="opacity-100 translate-y-0"
+                             class="absolute left-0 right-0 top-full z-40 mt-2 overflow-hidden rounded-2xl border border-surface-container-low bg-surface-container-lowest shadow-2xl">
+                            <div class="border-b border-surface-container-low p-3">
+                                <input x-ref="searchInput" type="text" x-model="search"
+                                       class="w-full rounded-xl border-0 bg-surface-container-low px-4 py-3 text-sm shadow-inner focus:ring-2 focus:ring-primary/20"
+                                       placeholder="Cari akun..." autocomplete="off">
+                            </div>
+                            <div class="max-h-60 overflow-y-auto p-1.5">
+                                <template x-if="filteredOptions().length === 0">
+                                    <div class="px-4 py-3 text-sm text-outline-variant">Akun tidak ditemukan.</div>
+                                </template>
+                                <template x-for="option in filteredOptions()" :key="option.value">
+                                    <button type="button" @mousedown.prevent="setSelected(option.value)"
+                                            class="flex w-full items-center justify-between gap-3 rounded-xl px-4 py-3 text-left text-sm transition hover:bg-primary/5 hover:text-primary">
+                                        <span class="truncate font-semibold" x-text="option.label"></span>
+                                        <x-icon name="check" class="h-4 w-4 text-primary" x-show="selected === option.value"></x-icon>
+                                    </button>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
             <button type="submit"
@@ -295,7 +340,7 @@
                         <x-icon name="search" class="w-4 h-4" />
                     </span>
                     <input type="text" name="search_user" value="{{ request('search_user') }}" 
-                           placeholder="Cari user, email, atau studio..." 
+                           placeholder="Cari user, email, atau akun..." 
                            class="w-full bg-surface-container-low border-0 rounded-xl pl-9 pr-3 py-2 text-sm focus:ring-2 focus:ring-primary/20">
                 </div>
                 <button type="submit" class="bg-primary/10 text-primary px-4 py-2 rounded-xl text-sm font-bold hover:bg-primary/20 transition-all">
@@ -308,13 +353,13 @@
                 @endif
             </form>
         </div>
-        <div class="overflow-x-auto scrollbar-thin scrollbar-thumb-surface-container">
-            <table class="w-full min-w-[700px] text-left border-collapse whitespace-nowrap">
+        <div class="table-scroll-mobile overflow-x-auto scrollbar-thin scrollbar-thumb-surface-container">
+            <table class="w-full min-w-[700px] text-left border-collapse">
                 <thead>
                     <tr class="bg-surface-container-low/50">
                         <th class="px-6 sm:px-8 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Administrator</th>
                         <th class="px-6 sm:px-8 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest leading-none">Akses Level</th>
-                        <th class="px-6 sm:px-8 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest leading-none">Studio</th>
+                        <th class="px-6 sm:px-8 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest leading-none">Akun</th>
                         <th class="px-6 sm:px-8 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest text-right leading-none">Aksi</th>
                     </tr>
                 </thead>
@@ -341,10 +386,22 @@
                             @endif
                         </td>
                         <td class="px-6 sm:px-8 py-4">
-                            <span class="text-sm font-bold text-on-surface-variant line-clamp-2 max-w-[150px]">{{ $u->account ? $u->account->name : 'Akses Pusat' }}</span>
+                            <span class="block max-w-[220px] whitespace-normal break-words text-sm font-bold leading-snug text-on-surface-variant sm:max-w-[280px]">{{ $u->account ? $u->account->name : 'Akses Pusat' }}</span>
                         </td>
                         <td class="px-6 sm:px-8 py-4 text-right">
                             <div class="flex justify-end gap-1 items-center">
+                                <button type="button"
+                                        @click="openEditUser({
+                                            id: '{{ $u->id }}',
+                                            name: @js($u->name),
+                                            email: @js($u->email),
+                                            role: '{{ $u->role->value }}',
+                                            account_id: '{{ (string) ($u->account_id ?? '') }}'
+                                        })"
+                                        class="w-9 h-9 rounded-xl hover:bg-surface-container flex items-center justify-center text-on-surface-variant/40 hover:text-primary transition-all active:scale-90"
+                                        title="Edit User">
+                                    <x-icon name="edit" class="w-5 h-5" />
+                                </button>
                                 @if($u->id !== auth()->id())
                                 <button type="button" onclick="promptResetPassword({{ $u->id }}, '{{ addslashes($u->name) }}')"
                                         class="w-9 h-9 rounded-xl hover:bg-primary/10 flex items-center justify-center text-on-surface-variant/40 hover:text-primary transition-all active:scale-90"
@@ -382,89 +439,173 @@
             {{ $users->appends(['tab' => 'users'])->links() }}
         </div>
         @endif
-    </div>
 </div>
+</div>
+
+<template x-teleport="body">
+    <div x-show="showEditUserModal"
+         x-cloak
+         class="fixed inset-0 z-[70] flex items-end justify-center bg-inverse-surface/50 p-0 backdrop-blur-sm sm:items-center sm:p-4"
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-150"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0">
+        <div @click.away="closeEditUserModal()"
+             class="flex max-h-[92vh] w-full max-w-3xl flex-col overflow-hidden rounded-t-3xl bg-surface-container-lowest shadow-2xl sm:max-w-xl sm:rounded-3xl">
+            <div class="flex items-start justify-between gap-4 border-b border-surface-container-low px-5 py-4 sm:px-6 sm:py-5">
+                <div>
+                    <h3 class="font-headline text-lg font-extrabold text-on-surface sm:text-xl">Edit User</h3>
+                    <p class="mt-1 text-xs font-medium text-on-surface-variant">Perbarui data administrator tanpa mengubah password.</p>
+                </div>
+                <button type="button"
+                        @click="closeEditUserModal()"
+                        class="flex h-9 w-9 items-center justify-center rounded-full bg-surface-container text-on-surface-variant transition hover:bg-error/10 hover:text-error">
+                    <x-icon name="close" class="h-5 w-5" />
+                </button>
+            </div>
+
+            <form method="POST"
+                  :action="buildUserUpdateUrl(editUser.id)"
+                  class="flex-1 overflow-y-auto px-5 py-5 sm:px-6 sm:py-6">
+                @csrf
+                @method('PUT')
+                <input type="hidden" name="tab" value="users">
+                <input type="hidden" name="search_user" value="{{ request('search_user') }}">
+                <input type="hidden" name="users_page" value="{{ request('users_page', $users->currentPage()) }}">
+                <input type="hidden" name="edit_user_id" :value="editUser.id">
+
+                <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-x-5 sm:gap-y-5">
+                <div class="space-y-2">
+                    <label class="block px-1 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Nama Lengkap</label>
+                    <input type="text"
+                           name="name"
+                           x-model="editUser.name"
+                           required
+                           class="w-full rounded-xl border-0 bg-surface-container-low px-4 py-3 text-sm font-bold shadow-inner focus:ring-2 focus:ring-primary/20"
+                           placeholder="Nama Administrator">
+                </div>
+
+                <div class="space-y-2"
+                     x-show="editUser.role !== 'super_admin'"
+                     x-transition.opacity.duration.150ms>
+                    <label class="block px-1 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Pilih Akun</label>
+                    <div x-data="searchableSelect(@js(collect([['value' => '', 'label' => '-- Akun --']])->concat($accounts->map(fn($account) => ['value' => (string) $account->id, 'label' => $account->name])->values())))"
+                         x-init="$watch('selected', value => editUser.account_id = value); selected = editUser.account_id || ''"
+                         x-effect="if (selected !== String(editUser.account_id || '')) selected = String(editUser.account_id || '')"
+                         @click.outside="close()"
+                         @keydown.escape.prevent.stop="close()"
+                         class="relative">
+                        <input type="hidden" name="account_id" :value="editUser.role === 'super_admin' ? '' : selected">
+                        <button type="button"
+                                @click="toggle()"
+                                class="w-full rounded-xl bg-surface-container-low py-3 pl-4 pr-12 text-left text-sm font-bold shadow-inner transition focus:outline-none focus:ring-2 focus:ring-primary/20"
+                                :class="open ? 'ring-2 ring-primary/20' : ''"
+                                :aria-expanded="open.toString()"
+                                aria-haspopup="listbox">
+                            <span class="block truncate text-on-surface" x-text="selectedLabel('-- Akun --')"></span>
+                        </button>
+                        <x-icon name="expand_more"
+                                class="pointer-events-none absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-outline-variant transition-transform"
+                                x-bind:class="open ? 'rotate-180' : ''" />
+                        <div x-show="open"
+                             x-cloak
+                             x-transition:enter="transition ease-out duration-150"
+                             x-transition:enter-start="opacity-0 -translate-y-1"
+                             x-transition:enter-end="opacity-100 translate-y-0"
+                             class="absolute left-0 right-0 top-full z-[80] mt-2 overflow-hidden rounded-2xl border border-surface-container-low bg-surface-container-lowest shadow-2xl">
+                            <div class="border-b border-surface-container-low p-3">
+                                <input x-ref="searchInput" type="text" x-model="search"
+                                       class="w-full rounded-xl border-0 bg-surface-container-low px-4 py-3 text-sm shadow-inner focus:ring-2 focus:ring-primary/20"
+                                       placeholder="Cari akun..." autocomplete="off">
+                            </div>
+                            <div class="max-h-48 overflow-y-auto p-1.5 sm:max-h-60">
+                                <template x-if="filteredOptions().length === 0">
+                                    <div class="px-4 py-3 text-sm text-outline-variant">Akun tidak ditemukan.</div>
+                                </template>
+                                <template x-for="option in filteredOptions()" :key="option.value">
+                                    <button type="button"
+                                            @mousedown.prevent="setSelected(option.value)"
+                                            class="flex w-full items-center justify-between gap-3 rounded-xl px-4 py-3 text-left text-sm transition hover:bg-primary/5 hover:text-primary">
+                                        <span class="truncate font-semibold" x-text="option.label"></span>
+                                        <x-icon name="check" class="h-4 w-4 text-primary" x-show="selected === option.value"></x-icon>
+                                    </button>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <label class="block px-1 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Alamat Email</label>
+                    <input type="email"
+                           name="email"
+                           x-model="editUser.email"
+                           required
+                           class="w-full rounded-xl border-0 bg-surface-container-low px-4 py-3 text-sm font-bold shadow-inner focus:ring-2 focus:ring-primary/20"
+                           placeholder="admin@akun.com">
+                </div>
+
+                    <div class="space-y-2">
+                        <label class="block px-1 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">Pilih Role</label>
+                        <div x-data="searchableSelect([
+                                { value: 'admin', label: 'Admin' },
+                                { value: 'super_admin', label: 'Super Admin' }
+                             ])"
+                             x-init="$watch('selected', value => editUser.role = value); selected = editUser.role || 'admin'"
+                             x-effect="if (selected !== (editUser.role || 'admin')) selected = (editUser.role || 'admin')"
+                             @click.outside="close()"
+                             @keydown.escape.prevent.stop="close()"
+                             class="relative">
+                            <input type="hidden" name="role" :value="selected" required>
+                            <button type="button"
+                                    @click="toggle()"
+                                    class="w-full rounded-xl bg-surface-container-low py-3 pl-4 pr-12 text-left text-sm font-bold shadow-inner transition focus:outline-none focus:ring-2 focus:ring-primary/20"
+                                    :class="open ? 'ring-2 ring-primary/20' : ''"
+                                    :aria-expanded="open.toString()"
+                                    aria-haspopup="listbox">
+                                <span class="block truncate text-on-surface" x-text="selectedLabel('Pilih Role')"></span>
+                            </button>
+                            <x-icon name="expand_more"
+                                    class="pointer-events-none absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-outline-variant transition-transform"
+                                    x-bind:class="open ? 'rotate-180' : ''" />
+                            <div x-show="open"
+                                 x-cloak
+                                 x-transition:enter="transition ease-out duration-150"
+                                 x-transition:enter-start="opacity-0 -translate-y-1"
+                                 x-transition:enter-end="opacity-100 translate-y-0"
+                                 class="absolute left-0 right-0 top-full z-[80] mt-2 overflow-hidden rounded-2xl border border-surface-container-low bg-surface-container-lowest shadow-2xl">
+                                <div class="max-h-48 overflow-y-auto p-1.5 sm:max-h-60">
+                                    <template x-for="option in options" :key="option.value">
+                                        <button type="button"
+                                                @mousedown.prevent="setSelected(option.value)"
+                                                class="flex w-full items-center justify-between gap-3 rounded-xl px-4 py-3 text-left text-sm transition hover:bg-primary/5 hover:text-primary">
+                                            <span class="truncate font-semibold" x-text="option.label"></span>
+                                            <x-icon name="check" class="h-4 w-4 text-primary" x-show="selected === option.value"></x-icon>
+                                        </button>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="sticky bottom-0 mt-5 flex flex-col-reverse gap-3 border-t border-surface-container-low bg-surface-container-lowest pt-5 sm:flex-row sm:justify-end">
+                    <button type="button"
+                            @click="closeEditUserModal()"
+                            class="w-full rounded-xl px-5 py-3 text-sm font-bold text-on-surface-variant transition hover:bg-surface-container-low sm:w-auto">
+                        Batal
+                    </button>
+                    <button type="submit"
+                            class="w-full rounded-xl bg-primary px-6 py-3 text-sm font-bold text-on-primary shadow-lg shadow-primary/20 transition hover:bg-primary-dim sm:w-auto">
+                        Simpan Perubahan
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</template>
 </div> {{-- End of Alpine wrapper --}}
 
-@push('scripts')
-<script>
-    function toggleCatEdit(id) {
-        document.querySelectorAll('.cat-display-' + id).forEach(el => el.classList.toggle('hidden'));
-        document.querySelectorAll('.cat-edit-' + id).forEach(el => el.classList.toggle('hidden'));
-    }
-    function toggleStatusEdit(id) {
-        document.querySelectorAll('.status-display-' + id).forEach(el => el.classList.toggle('hidden'));
-        document.querySelectorAll('.status-edit-' + id).forEach(el => el.classList.toggle('hidden'));
-    }
-    const picker = document.getElementById('statusColorPicker');
-    const text = document.getElementById('statusColorText');
-    if (picker && text) {
-        picker.addEventListener('input', e => text.value = e.target.value.toUpperCase());
-    }
-    function toggleAccountField() {
-        const role = document.getElementById('roleSelect');
-        const field = document.getElementById('accountField');
-        if (role && field) {
-            field.style.visibility = role.value === 'super_admin' ? 'hidden' : 'visible';
-            field.style.opacity = role.value === 'super_admin' ? '0' : '1';
-        }
-    }
-
-    function promptResetPassword(userId, userName) {
-        Swal.fire({
-            title: 'Reset Password',
-            text: 'Masukkan password baru untuk ' + userName,
-            input: 'password',
-            inputAttributes: {
-                autocapitalize: 'off',
-                autocorrect: 'off'
-            },
-            showCancelButton: true,
-            confirmButtonText: 'Simpan Password',
-            cancelButtonText: 'Batal',
-            showLoaderOnConfirm: true,
-            customClass: {
-                popup: 'rounded-2xl shadow-xl',
-                input: 'bg-surface-container-low border-0 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20',
-                confirmButton: 'bg-primary rounded-xl px-6 py-2.5 text-sm font-bold',
-                cancelButton: 'bg-outline-variant/30 rounded-xl px-6 py-2.5 text-sm font-bold'
-            },
-            preConfirm: (newPassword) => {
-                if (!newPassword || newPassword.length < 6) {
-                    Swal.showValidationMessage('Password minimal 6 karakter');
-                    return false;
-                }
-                
-                // Submit via Dynamic Form
-                const form = document.createElement('form');
-                form.method = 'POST';
-                form.action = `/master-data/users/${userId}/reset-password`;
-                
-                const csrf = document.createElement('input');
-                csrf.type = 'hidden';
-                csrf.name = '_token';
-                csrf.value = document.querySelector('meta[name="csrf-token"]').content;
-                
-                const method = document.createElement('input');
-                method.type = 'hidden';
-                method.name = '_method';
-                method.value = 'PUT';
-                
-                const passInput = document.createElement('input');
-                passInput.type = 'hidden';
-                passInput.name = 'password';
-                passInput.value = newPassword;
-                
-                form.appendChild(csrf);
-                form.appendChild(method);
-                form.appendChild(passInput);
-                document.body.appendChild(form);
-                form.submit();
-            }
-        });
-    }
-
-    window.onload = toggleAccountField;
-</script>
-@endpush
 @endsection

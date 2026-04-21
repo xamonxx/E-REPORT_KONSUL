@@ -84,7 +84,7 @@
             </div>
             <a href="{{ route('accounts.index') }}" class="text-primary text-sm font-semibold hover:underline">Lihat Semua Akun</a>
         </div>
-        <div class="overflow-x-auto scrollbar-thin scrollbar-thumb-surface-container shadow-inner">
+        <div class="table-scroll-mobile overflow-x-auto scrollbar-thin scrollbar-thumb-surface-container shadow-inner">
             <table class="w-full min-w-[600px] text-left border-collapse whitespace-nowrap">
                 <thead>
                     <tr class="bg-surface-container-low/50">
@@ -196,13 +196,13 @@
             <span class="flex items-center gap-1.5 text-error whitespace-nowrap"><span class="w-3 h-3 rounded bg-error shrink-0"></span> Tidak Laporan</span>
         </div>
     </div>
-    <div class="overflow-x-auto scrollbar-thin scrollbar-thumb-surface-container shadow-inner">
+    <div class="table-scroll-mobile overflow-x-auto scrollbar-thin scrollbar-thumb-surface-container shadow-inner">
         <table class="w-full min-w-[700px] text-left border-collapse whitespace-nowrap">
             <thead>
                 <tr class="bg-surface-container-low/50">
                     <th class="px-6 sm:px-8 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest text-center">Waktu Report</th>
                     <th class="px-6 sm:px-8 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Nama Admin</th>
-                    <th class="px-6 sm:px-8 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Akun / Cabang</th>
+                    <th class="px-6 sm:px-8 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Akun</th>
                     <th class="px-6 sm:px-8 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest text-right">Status Absensi</th>
                 </tr>
             </thead>
@@ -334,7 +334,7 @@
 <div class="mt-8 bg-primary-fixed/30 p-6 md:p-10 rounded-2xl border border-primary/10 relative overflow-hidden flex flex-col lg:flex-row justify-between items-start lg:items-center gap-8 animate-fade-in shadow-sm">
     <div class="relative z-10 max-w-2xl">
         <h2 class="text-2xl md:text-3xl font-bold font-headline text-primary mb-2 md:mb-3 leading-tight">Analisis Data Global</h2>
-        <p class="text-on-surface-variant text-sm md:text-base leading-relaxed">Ekspor seluruh data leads untuk kebutuhan insight pemasaran dan mengevaluasi kinerja seluruh tim interior dari cabang maupun pusat.</p>
+        <p class="text-on-surface-variant text-sm md:text-base leading-relaxed">Ekspor seluruh data leads untuk kebutuhan insight pemasaran dan mengevaluasi kinerja seluruh tim interior dari akun maupun pusat.</p>
     </div>
     <div class="relative z-10 flex flex-col sm:flex-row gap-4 w-full lg:w-auto shrink-0 no-print">
         <a href="{{ route('export.csv') }}"

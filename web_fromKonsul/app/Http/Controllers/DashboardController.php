@@ -130,7 +130,7 @@ class DashboardController extends Controller
         $accountId = $user->account_id;
 
         if (!$accountId) {
-            abort(403, 'Akun cabang belum di-assign ke user Anda. Hubungi Super Admin.');
+            abort(403, 'Akun belum di-assign ke user Anda. Hubungi Super Admin.');
         }
 
         // Cache admin dashboard per account id for 5 minutes

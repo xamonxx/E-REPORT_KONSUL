@@ -6,7 +6,6 @@
         x-init="startPolling()"
         class="sticky top-0 w-full z-30 bg-white/90 backdrop-blur-lg flex justify-between items-center px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
     <div class="flex items-center gap-3 sm:gap-4">
-        {{-- Hamburger Menu --}}
         <button @click="sidebarOpen = !sidebarOpen" class="w-10 h-10 rounded-xl flex items-center justify-center hover:bg-surface-container/50 transition-colors text-on-surface-variant shrink-0 relative z-40">
             <x-icon name="menu" class="w-5 h-5" />
         </button>
@@ -26,7 +25,6 @@
 
     <div class="flex items-center gap-3 sm:gap-6">
         <div class="flex items-center gap-2 sm:gap-4 text-on-surface-variant">
-            {{-- Notifications / Reminders Dropdown --}}
             <div x-data="{ open: false }" class="relative">
                 <button @click="open = !open" @click.away="open = false" class="relative opacity-80 hover:text-primary transition-colors">
                     <x-icon name="notifications" class="w-6 h-6" />
@@ -34,13 +32,11 @@
                           x-text="badgeCount"></span>
                 </button>
 
-                {{-- Dropdown Panel --}}
                 <div x-show="open" x-transition.opacity x-cloak class="absolute right-0 mt-3 w-72 sm:w-80 bg-surface-container-lowest rounded-2xl shadow-xl border border-surface-container-low overflow-hidden focus:outline-none">
                     <div class="p-4 bg-surface-container-low/50 border-b border-surface-container">
                         <span class="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Notifikasi & Chat</span>
                     </div>
                     <div class="max-h-96 overflow-y-auto">
-                        {{-- New Chat Notes Section --}}
                         @if($unreadNotes->count() > 0)
                         <div class="bg-primary/5 px-4 py-2 border-b border-primary/10">
                             <span class="text-[10px] font-bold text-primary uppercase tracking-wider">Chat / Catatan Baru</span>
@@ -53,7 +49,7 @@
                                 </div>
                                 <div class="min-w-0">
                                     <p class="text-xs font-bold text-on-surface truncate">{{ $note->user->name }} mencatat:</p>
-                                    <p class="text-xs text-on-surface-variant line-clamp-1 mt-0.5 mt-1">"{{ $note->body }}"</p>
+                                    <p class="text-xs text-on-surface-variant line-clamp-1 mt-1">"{{ $note->body }}"</p>
                                     <div class="flex items-center gap-2 mt-2">
                                         <span class="text-[9px] font-bold px-1.5 py-0.5 bg-surface-container rounded text-on-surface-variant">{{ $note->consultation->client_name }}</span>
                                         <span class="text-[9px] text-outline-variant">{{ $note->created_at->diffForHumans() }}</span>
@@ -64,7 +60,6 @@
                         @endforeach
                         @endif
 
-                        {{-- Reminders Section --}}
                         <div class="bg-surface-container-low/30 px-4 py-2 border-b border-surface-container-low">
                             <span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">To-Do / Pengingat</span>
                         </div>
@@ -101,7 +96,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <button class="opacity-80 hover:text-primary transition-colors hidden sm:block">
                 <x-icon name="help_outline" class="w-6 h-6" />
             </button>
@@ -118,8 +113,7 @@
                 </div>
             </button>
 
-            {{-- Profile Dropdown --}}
-            <div x-show="userMenu" 
+            <div x-show="userMenu"
                  x-transition:enter="transition ease-out duration-200"
                  x-transition:enter-start="opacity-0 translate-y-2"
                  x-transition:enter-end="opacity-100 translate-y-0"
@@ -128,8 +122,6 @@
                  x-transition:leave-end="opacity-0 translate-y-2"
                  x-cloak
                  class="absolute right-0 top-full mt-3 w-56 bg-surface-container-lowest rounded-2xl shadow-xl border border-surface-container-low overflow-hidden z-50">
-                
-                {{-- User Info Header (Mobile Only) --}}
                 <div class="p-4 bg-surface-container-low/50 border-b border-surface-container sm:hidden">
                     <p class="text-xs font-bold text-on-surface">{{ $user->name }}</p>
                     <p class="text-[9px] text-on-surface-variant uppercase tracking-wider mt-0.5">{{ $user->isSuperAdmin() ? 'Super Admin' : 'Admin Akun' }}</p>
@@ -140,9 +132,9 @@
                         <x-icon name="settings" class="w-[18px] h-[18px]" />
                         <span>Pengaturan Akun</span>
                     </a>
-                    
+
                     <div class="my-2 border-t border-surface-container-low"></div>
-                    
+
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
                         <button type="submit" class="w-full flex items-center gap-3 px-4 py-2.5 text-xs font-bold text-error hover:bg-error/5 transition-colors">
@@ -155,24 +147,3 @@
         </div>
     </div>
 </header>
-
-<script>
-function notificationBadge(initialCount, apiUrl, csrfToken) {
-    return {
-        badgeCount: initialCount,
-        startPolling() {
-            setInterval(() => {
-                fetch(apiUrl, {
-                    headers: {
-                        'Accept': 'application/json',
-                        'X-CSRF-TOKEN': csrfToken
-                    }
-                })
-                .then(res => res.ok ? res.json() : Promise.reject(res))
-                .then(data => { this.badgeCount = data.total || 0; })
-                .catch(err => console.error('Polling error:', err));
-            }, 15000);
-        }
-    };
-}
-</script>

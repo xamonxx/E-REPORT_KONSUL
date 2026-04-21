@@ -3,59 +3,172 @@
 
 @section('content')
 {{-- Page Header --}}
-<div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
-    <div>
+<div class="page-header mb-6">
+    <div class="page-header__content">
         <h2 class="text-3xl font-extrabold text-on-surface tracking-tight font-headline">Analytics</h2>
         <p class="text-on-surface-variant mt-1">Analisis performa leads & konversi secara visual.</p>
     </div>
 </div>
 
 {{-- Filters --}}
-<div class="bg-surface-container-lowest p-6 rounded-xl shadow-sm">
-    <form method="GET" action="{{ route('analytics') }}" class="flex flex-wrap items-end gap-4">
+<div class="filter-card mb-6">
+    <form method="GET" action="{{ route('analytics') }}" class="flex flex-col gap-4">
+        <div class="filter-grid">
         @if(auth()->user()->isSuperAdmin())
-        <div class="w-48">
+        <div>
             <label class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2">Account</label>
-            <select name="account" class="w-full bg-surface-container-high border-0 rounded-xl py-2.5 text-sm focus:ring-2 focus:ring-primary/20">
-                <option value="">Semua Akun</option>
-                @foreach($accounts as $account)
-                <option value="{{ $account->id }}" {{ $selectedAccount == $account->id ? 'selected' : '' }}>{{ $account->name }}</option>
-                @endforeach
-            </select>
+            <div x-data="searchableSelect(@js(collect([['value' => '', 'label' => 'Semua Akun']])->concat($accounts->map(fn($account) => ['value' => (string) $account->id, 'label' => $account->name])->values())), @js((string) ($selectedAccount ?? '')))"
+                 @click.outside="close()"
+                 @keydown.escape.prevent.stop="close()"
+                 class="relative">
+                <input type="hidden" name="account" :value="selected">
+                <button type="button"
+                        @click="toggle()"
+                        class="w-full bg-surface-container-high rounded-xl pl-4 pr-12 py-3 text-left text-sm shadow-inner transition focus:outline-none focus:ring-2 focus:ring-primary/20"
+                        :class="open ? 'ring-2 ring-primary/20' : ''"
+                        :aria-expanded="open.toString()"
+                        aria-haspopup="listbox">
+                    <span class="block truncate"
+                          :class="selected ? 'font-semibold text-on-surface' : 'font-semibold text-on-surface'"
+                          x-text="selectedLabel('Semua Akun')"></span>
+                </button>
+                <x-icon name="expand_more"
+                        class="w-5 h-5 absolute right-4 top-1/2 -translate-y-1/2 text-outline-variant pointer-events-none transition-transform"
+                        x-bind:class="open ? 'rotate-180' : ''" />
+                <div x-show="open"
+                     x-cloak
+                     x-transition:enter="transition ease-out duration-150"
+                     x-transition:enter-start="opacity-0 -translate-y-1"
+                     x-transition:enter-end="opacity-100 translate-y-0"
+                     class="absolute left-0 right-0 top-full z-40 mt-2 overflow-hidden rounded-2xl border border-surface-container-low bg-surface-container-lowest shadow-2xl">
+                    <div class="border-b border-surface-container-low p-3">
+                        <input x-ref="searchInput" type="text" x-model="search"
+                               class="w-full rounded-xl border-0 bg-surface-container-low px-4 py-3 text-sm shadow-inner focus:ring-2 focus:ring-primary/20"
+                               placeholder="Cari akun..." autocomplete="off">
+                    </div>
+                    <div class="max-h-60 overflow-y-auto p-1.5">
+                        <template x-if="filteredOptions().length === 0">
+                            <div class="px-4 py-3 text-sm text-outline-variant">Akun tidak ditemukan.</div>
+                        </template>
+                        <template x-for="option in filteredOptions()" :key="option.value">
+                            <button type="button" @mousedown.prevent="setSelected(option.value)"
+                                    class="flex w-full items-center justify-between gap-3 rounded-xl px-4 py-3 text-left text-sm transition hover:bg-primary/5 hover:text-primary">
+                                <span class="truncate font-semibold" x-text="option.label"></span>
+                                <x-icon name="check" class="h-4 w-4 text-primary" x-show="selected === option.value"></x-icon>
+                            </button>
+                        </template>
+                    </div>
+                </div>
+            </div>
         </div>
         @endif
 
-        <div class="w-40">
+        <div>
             <label class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2">Bulan</label>
-            <select name="month" class="w-full bg-surface-container-high border-0 rounded-xl py-2.5 text-sm focus:ring-2 focus:ring-primary/20">
-                @foreach($months as $month)
-                <option value="{{ $month['value'] }}" {{ $selectedMonth == $month['value'] ? 'selected' : '' }}>{{ $month['label'] }}</option>
-                @endforeach
-            </select>
+            <div x-data="searchableSelect(@js(collect($months)->map(fn($month) => ['value' => (string) $month['value'], 'label' => $month['label']])->values()), @js((string) $selectedMonth))"
+                 @click.outside="close()"
+                 @keydown.escape.prevent.stop="close()"
+                 class="relative">
+                <input type="hidden" name="month" :value="selected">
+                <button type="button"
+                        @click="toggle()"
+                        class="w-full bg-surface-container-high rounded-xl pl-4 pr-12 py-3 text-left text-sm shadow-inner transition focus:outline-none focus:ring-2 focus:ring-primary/20"
+                        :class="open ? 'ring-2 ring-primary/20' : ''"
+                        :aria-expanded="open.toString()"
+                        aria-haspopup="listbox">
+                    <span class="block truncate font-semibold text-on-surface"
+                          x-text="selectedLabel('Pilih Bulan...')"></span>
+                </button>
+                <x-icon name="expand_more"
+                        class="w-5 h-5 absolute right-4 top-1/2 -translate-y-1/2 text-outline-variant pointer-events-none transition-transform"
+                        x-bind:class="open ? 'rotate-180' : ''" />
+                <div x-show="open"
+                     x-cloak
+                     x-transition:enter="transition ease-out duration-150"
+                     x-transition:enter-start="opacity-0 -translate-y-1"
+                     x-transition:enter-end="opacity-100 translate-y-0"
+                     class="absolute left-0 right-0 top-full z-40 mt-2 overflow-hidden rounded-2xl border border-surface-container-low bg-surface-container-lowest shadow-2xl">
+                    <div class="border-b border-surface-container-low p-3">
+                        <input x-ref="searchInput" type="text" x-model="search"
+                               class="w-full rounded-xl border-0 bg-surface-container-low px-4 py-3 text-sm shadow-inner focus:ring-2 focus:ring-primary/20"
+                               placeholder="Cari bulan..." autocomplete="off">
+                    </div>
+                    <div class="max-h-60 overflow-y-auto p-1.5">
+                        <template x-if="filteredOptions().length === 0">
+                            <div class="px-4 py-3 text-sm text-outline-variant">Bulan tidak ditemukan.</div>
+                        </template>
+                        <template x-for="option in filteredOptions()" :key="option.value">
+                            <button type="button" @mousedown.prevent="setSelected(option.value)"
+                                    class="flex w-full items-center justify-between gap-3 rounded-xl px-4 py-3 text-left text-sm transition hover:bg-primary/5 hover:text-primary">
+                                <span class="truncate font-semibold" x-text="option.label"></span>
+                                <x-icon name="check" class="h-4 w-4 text-primary" x-show="selected === option.value"></x-icon>
+                            </button>
+                        </template>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <div class="w-32">
+        <div>
             <label class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2">Tahun</label>
-            <select name="year" class="w-full bg-surface-container-high border-0 rounded-xl py-2.5 text-sm focus:ring-2 focus:ring-primary/20">
-                @foreach($years as $year)
-                <option value="{{ $year }}" {{ $selectedYear == $year ? 'selected' : '' }}>{{ $year }}</option>
-                @endforeach
-            </select>
+            <div x-data="searchableSelect(@js(collect($years)->map(fn($year) => ['value' => (string) $year, 'label' => (string) $year])->values()), @js((string) $selectedYear))"
+                 @click.outside="close()"
+                 @keydown.escape.prevent.stop="close()"
+                 class="relative">
+                <input type="hidden" name="year" :value="selected">
+                <button type="button"
+                        @click="toggle()"
+                        class="w-full bg-surface-container-high rounded-xl pl-4 pr-12 py-3 text-left text-sm shadow-inner transition focus:outline-none focus:ring-2 focus:ring-primary/20"
+                        :class="open ? 'ring-2 ring-primary/20' : ''"
+                        :aria-expanded="open.toString()"
+                        aria-haspopup="listbox">
+                    <span class="block truncate font-semibold text-on-surface"
+                          x-text="selectedLabel('Pilih Tahun...')"></span>
+                </button>
+                <x-icon name="expand_more"
+                        class="w-5 h-5 absolute right-4 top-1/2 -translate-y-1/2 text-outline-variant pointer-events-none transition-transform"
+                        x-bind:class="open ? 'rotate-180' : ''" />
+                <div x-show="open"
+                     x-cloak
+                     x-transition:enter="transition ease-out duration-150"
+                     x-transition:enter-start="opacity-0 -translate-y-1"
+                     x-transition:enter-end="opacity-100 translate-y-0"
+                     class="absolute left-0 right-0 top-full z-40 mt-2 overflow-hidden rounded-2xl border border-surface-container-low bg-surface-container-lowest shadow-2xl">
+                    <div class="border-b border-surface-container-low p-3">
+                        <input x-ref="searchInput" type="text" x-model="search"
+                               class="w-full rounded-xl border-0 bg-surface-container-low px-4 py-3 text-sm shadow-inner focus:ring-2 focus:ring-primary/20"
+                               placeholder="Cari tahun..." autocomplete="off">
+                    </div>
+                    <div class="max-h-60 overflow-y-auto p-1.5">
+                        <template x-if="filteredOptions().length === 0">
+                            <div class="px-4 py-3 text-sm text-outline-variant">Tahun tidak ditemukan.</div>
+                        </template>
+                        <template x-for="option in filteredOptions()" :key="option.value">
+                            <button type="button" @mousedown.prevent="setSelected(option.value)"
+                                    class="flex w-full items-center justify-between gap-3 rounded-xl px-4 py-3 text-left text-sm transition hover:bg-primary/5 hover:text-primary">
+                                <span class="truncate font-semibold" x-text="option.label"></span>
+                                <x-icon name="check" class="h-4 w-4 text-primary" x-show="selected === option.value"></x-icon>
+                            </button>
+                        </template>
+                    </div>
+                </div>
+            </div>
+        </div>
         </div>
 
-        <div class="flex items-center gap-3">
-            <button type="submit" class="bg-primary/10 text-primary px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-primary/20 transition-all active:scale-[0.98]">
+        <div class="filter-actions">
+            <button type="submit" class="w-full sm:w-auto bg-primary/10 text-primary px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-primary/20 transition-all active:scale-[0.98]">
                 Filter
             </button>
             @if(request()->hasAny(['account', 'month', 'year']))
-            <a href="{{ route('analytics') }}" class="text-on-surface-variant text-xs sm:text-sm font-bold px-2 hover:text-error transition-colors">Reset</a>
+            <a href="{{ route('analytics') }}" class="w-full sm:w-auto text-center text-on-surface-variant text-xs sm:text-sm font-bold px-2 py-2 hover:text-error transition-colors">Reset</a>
             @endif
         </div>
     </form>
 </div>
 
 {{-- Summary Cards --}}
-<div class="grid grid-cols-1 md:grid-cols-3 gap-6 stagger-children">
+<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 stagger-children">
     {{-- Total Leads --}}
     <div class="bg-surface-container-lowest p-6 rounded-xl shadow-sm border border-transparent hover:border-primary/10 transition-all group hover-lift animate-fade-in">
         <div class="flex justify-between items-start mb-4">
@@ -98,7 +211,7 @@
 {{-- Charts Row --}}
 <div class="grid grid-cols-1 lg:grid-cols-5 gap-8">
     {{-- Bar Chart: Status Distribution --}}
-    <div class="lg:col-span-3 bg-surface-container-lowest p-8 rounded-2xl shadow-sm animate-fade-in">
+    <div class="lg:col-span-3 bg-surface-container-lowest p-6 sm:p-8 rounded-2xl shadow-sm animate-fade-in border border-surface-container-low">
         <div class="mb-6">
             <h2 class="text-xl font-bold font-headline text-on-surface">Status Distribution</h2>
             <p class="text-xs text-on-surface-variant">Jumlah leads per kategori status</p>
@@ -126,7 +239,7 @@
     </div>
 
     {{-- Doughnut Chart --}}
-    <div class="lg:col-span-2 bg-surface-container-lowest p-8 rounded-2xl shadow-sm flex flex-col items-center animate-fade-in">
+    <div class="lg:col-span-2 bg-surface-container-lowest p-6 sm:p-8 rounded-2xl shadow-sm flex flex-col items-center animate-fade-in border border-surface-container-low">
         <div class="w-full mb-8">
             <h2 class="text-xl font-bold font-headline text-on-surface">Pipeline Health</h2>
             <p class="text-xs text-on-surface-variant">Proporsi setiap status terhadap total</p>
@@ -182,7 +295,7 @@
 </div>
 
 {{-- Needs Category Chart Row --}}
-<div class="mt-8 bg-surface-container-lowest p-8 rounded-2xl shadow-sm animate-fade-in">
+<div class="mt-8 bg-surface-container-lowest p-6 sm:p-8 rounded-2xl shadow-sm animate-fade-in border border-surface-container-low">
     <div class="mb-6">
         <h2 class="text-xl font-bold font-headline text-on-surface">Kategori Kebutuhan</h2>
         <p class="text-xs text-on-surface-variant">Distribusi leads berdasarkan kategori minat pelayanan</p>
@@ -222,14 +335,14 @@
 
     {{-- Account Ranking --}}
     @if($accountRanking->count())
-    <div class="bg-surface-container-lowest rounded-2xl shadow-sm overflow-hidden animate-fade-in flex flex-col">
-        <div class="px-8 py-6 flex justify-between items-center">
+    <div class="table-panel animate-fade-in flex flex-col">
+        <div class="px-6 sm:px-8 py-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
                 <h2 class="text-xl font-bold font-headline text-on-surface">Account Ranking</h2>
                 <p class="text-xs text-on-surface-variant">Peringkat berdasarkan rasio survey</p>
             </div>
         </div>
-        <div class="overflow-x-auto flex-1">
+        <div class="table-scroll-mobile overflow-x-auto flex-1">
             <table class="w-full min-w-max text-left border-collapse whitespace-nowrap">
                 <thead>
                     <tr class="bg-surface-container-low/50">
@@ -279,20 +392,20 @@
 
     {{-- Admin Ranking --}}
     @if(isset($adminRanking) && $adminRanking->count())
-    <div class="bg-surface-container-lowest rounded-2xl shadow-sm overflow-hidden animate-fade-in flex flex-col">
-        <div class="px-8 py-6 flex justify-between items-center">
+    <div class="table-panel animate-fade-in flex flex-col">
+        <div class="px-6 sm:px-8 py-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
                 <h2 class="text-xl font-bold font-headline text-on-surface">Admin Ranking</h2>
                 <p class="text-xs text-on-surface-variant">Peringkat berdasarkan volume klien yang masuk</p>
             </div>
         </div>
-        <div class="overflow-x-auto flex-1">
+        <div class="table-scroll-mobile overflow-x-auto flex-1">
             <table class="w-full min-w-max text-left border-collapse whitespace-nowrap">
                 <thead>
                     <tr class="bg-surface-container-low/50">
                         <th class="px-8 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest w-16">Rank</th>
                         <th class="px-8 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Admin Name</th>
-                        <th class="px-8 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Account / Cabang</th>
+                        <th class="px-8 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Akun</th>
                         <th class="px-8 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest text-right">Total Klien Input</th>
                     </tr>
                 </thead>

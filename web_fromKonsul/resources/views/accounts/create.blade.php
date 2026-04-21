@@ -9,8 +9,8 @@
             <x-icon name="arrow_back" class="w-5 h-5" />
         </a>
         <div class="min-w-0">
-            <h2 class="text-2xl font-extrabold text-on-surface font-headline truncate pr-2">Tambah Akun Studio</h2>
-            <p class="text-xs text-on-surface-variant mt-1 opacity-70">Buat profil cabang interior baru untuk sistem.</p>
+            <h2 class="text-2xl font-extrabold text-on-surface font-headline truncate pr-2">Tambah Akun</h2>
+            <p class="text-xs text-on-surface-variant mt-1 opacity-70">Buat profil akun interior baru untuk sistem.</p>
         </div>
     </div>
 
@@ -35,7 +35,7 @@
             
             {{-- Logo Upload --}}
             <div class="space-y-2">
-                <label class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest px-1">Logo / Ikon Studio</label>
+                <label class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest px-1">Logo / Ikon Akun</label>
                 <div class="relative group">
                     <input type="file" name="logo" accept="image/*" class="block w-full text-xs sm:text-sm text-on-surface-variant
                         file:mr-4 file:py-2.5 file:px-6
@@ -47,12 +47,12 @@
                 </div>
             </div>
 
-            {{-- Studio Name --}}
+            {{-- Account Name --}}
             <div class="space-y-2">
-                <label class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest px-1">Nama Akun / Studio <span class="text-error">*</span></label>
+                <label class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest px-1">Nama Akun <span class="text-error">*</span></label>
                 <input type="text" name="name" value="{{ old('name') }}" 
                        class="w-full bg-surface-container-low border-0 rounded-xl px-4 py-3.5 text-sm focus:ring-2 focus:ring-primary/20 placeholder:text-outline-variant shadow-inner font-bold" 
-                       placeholder="Contoh: HOME INTERIOR CABANG BANDUNG" required />
+                       placeholder="Contoh: HOME INTERIOR AKUN BANDUNG" required />
             </div>
 
             {{-- Category/Description --}}
@@ -60,14 +60,14 @@
                 <label class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest px-1">Kategori Akun</label>
                 <input type="text" name="description" value="{{ old('description') }}" 
                        class="w-full bg-surface-container-low border-0 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 placeholder:text-outline-variant shadow-inner font-bold" 
-                       placeholder="Misal: Studio Pusat / Regional Studio / Luxury Branch" />
+                       placeholder="Misal: Akun Pusat / Akun Regional / Luxury Account" />
             </div>
 
 
             {{-- Target Setting --}}
             <div class="space-y-2">
                 <label class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest px-1">Target Leads Bulanan</label>
-                <div class="relative max-w-[200px]">
+                <div class="relative w-full sm:max-w-[200px]">
                     <input type="number" name="target_leads" value="{{ old('target_leads', 100) }}" 
                            class="w-full bg-surface-container-low border-0 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 shadow-inner font-bold text-center" min="1" />
                 </div>
@@ -75,7 +75,7 @@
             </div>
 
             {{-- Actions --}}
-            <div class="flex flex-col-reverse sm:flex-row gap-4 pt-6 border-t border-surface-container-low">
+            <div class="form-actions-responsive pt-6 border-t border-surface-container-low">
                 <a href="{{ route('accounts.index') }}" 
                    class="flex-1 sm:flex-none flex items-center justify-center border border-outline-variant/30 text-on-surface-variant px-8 py-3.5 rounded-xl text-sm font-bold hover:bg-surface-container transition-all active:scale-95">
                     Batal

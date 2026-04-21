@@ -2,22 +2,24 @@
 @section('title', 'Accounts')
 
 @section('content')
-<div class="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-6">
-    <div>
+<div class="page-header mb-6">
+    <div class="page-header__content">
         <h2 class="text-2xl sm:text-3xl font-extrabold text-on-surface tracking-tight font-headline">Accounts</h2>
-        <p class="text-sm sm:text-base text-on-surface-variant mt-1">Kelola akun dan cabang interior studio.</p>
+        <p class="text-sm sm:text-base text-on-surface-variant mt-1">Kelola seluruh akun interior.</p>
     </div>
-    <a href="{{ route('accounts.create') }}" class="w-full sm:w-auto bg-primary text-on-primary px-6 py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-primary/20 hover:bg-primary-dim transition-all active:scale-[0.98]">
-        <x-icon name="add_circle" class="w-4 h-4" />
-        <span>Tambah Akun Baru</span>
-    </a>
+    <div class="page-header__actions">
+        <a href="{{ route('accounts.create') }}" class="w-full sm:w-auto bg-primary text-on-primary px-6 py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-primary/20 hover:bg-primary-dim transition-all active:scale-[0.98]">
+            <x-icon name="add_circle" class="w-4 h-4" />
+            <span>Tambah Akun Baru</span>
+        </a>
+    </div>
 </div>
 
 {{-- Filters --}}
-<div class="bg-surface-container-lowest p-4 sm:p-6 rounded-xl shadow-sm mb-6 no-print">
-    <form method="GET" action="{{ route('accounts.index') }}" class="flex flex-col lg:flex-row items-stretch lg:items-end gap-4 overflow-hidden">
-        {{-- Search --}}
-        <div class="flex-1">
+<div class="filter-card mb-6 no-print">
+    <form method="GET" action="{{ route('accounts.index') }}" class="flex flex-col gap-4">
+        <div class="filter-grid">
+        <div>
             <label class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2 px-1">Cari Akun</label>
             <div class="relative">
                 <span class="absolute inset-y-0 left-3 flex items-center text-outline-variant">
@@ -28,9 +30,7 @@
                        placeholder="Cari nama akun..." />
             </div>
         </div>
-
-        {{-- ID Filter --}}
-        <div class="w-full lg:w-28">
+        <div>
             <label class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2 px-1">ID Akun</label>
             <div class="relative">
                 <span class="absolute inset-y-0 left-3 flex items-center text-outline-variant">
@@ -41,30 +41,65 @@
                        placeholder="ID..." min="1" />
             </div>
         </div>
-
-        {{-- Category Filter --}}
-        <div class="w-full lg:w-56">
+        <div>
             <label class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-2 px-1">Kategori Akun</label>
-            <select name="category" class="w-full bg-surface-container-high border-0 rounded-xl py-2.5 text-sm focus:ring-2 focus:ring-primary/20">
-                <option value="">Semua Kategori</option>
-                @foreach($categories as $cat)
-                <option value="{{ $cat }}" {{ request('category') == $cat ? 'selected' : '' }}>{{ $cat }}</option>
-                @endforeach
-            </select>
+            <div x-data="searchableSelect(@js(collect([['value' => '', 'label' => 'Semua Kategori']])->concat(collect($categories)->map(fn($category) => ['value' => (string) $category, 'label' => (string) $category])->values())), @js((string) request('category', '')))"
+                 @click.outside="close()"
+                 @keydown.escape.prevent.stop="close()"
+                 class="relative">
+                <input type="hidden" name="category" :value="selected">
+                <button type="button"
+                        @click="toggle()"
+                        class="w-full bg-surface-container-high rounded-xl pl-4 pr-12 py-2.5 text-left text-sm shadow-inner transition focus:outline-none focus:ring-2 focus:ring-primary/20"
+                        :class="open ? 'ring-2 ring-primary/20' : ''"
+                        :aria-expanded="open.toString()"
+                        aria-haspopup="listbox">
+                    <span class="block truncate font-semibold text-on-surface"
+                          x-text="selectedLabel('Semua Kategori')"></span>
+                </button>
+                <x-icon name="expand_more"
+                        class="w-5 h-5 absolute right-4 top-1/2 -translate-y-1/2 text-outline-variant pointer-events-none transition-transform"
+                        x-bind:class="open ? 'rotate-180' : ''" />
+                <div x-show="open"
+                     x-cloak
+                     x-transition:enter="transition ease-out duration-150"
+                     x-transition:enter-start="opacity-0 -translate-y-1"
+                     x-transition:enter-end="opacity-100 translate-y-0"
+                     class="absolute left-0 right-0 top-full z-40 mt-2 overflow-hidden rounded-2xl border border-surface-container-low bg-surface-container-lowest shadow-2xl">
+                    <div class="border-b border-surface-container-low p-3">
+                        <input x-ref="searchInput" type="text" x-model="search"
+                               class="w-full rounded-xl border-0 bg-surface-container-low px-4 py-3 text-sm shadow-inner focus:ring-2 focus:ring-primary/20"
+                               placeholder="Cari kategori..." autocomplete="off">
+                    </div>
+                    <div class="max-h-60 overflow-y-auto p-1.5">
+                        <template x-if="filteredOptions().length === 0">
+                            <div class="px-4 py-3 text-sm text-outline-variant">Kategori tidak ditemukan.</div>
+                        </template>
+                        <template x-for="option in filteredOptions()" :key="option.value">
+                            <button type="button" @mousedown.prevent="setSelected(option.value)"
+                                    class="flex w-full items-center justify-between gap-3 rounded-xl px-4 py-3 text-left text-sm transition hover:bg-primary/5 hover:text-primary">
+                                <span class="truncate font-semibold" x-text="option.label"></span>
+                                <x-icon name="check" class="h-4 w-4 text-primary" x-show="selected === option.value"></x-icon>
+                            </button>
+                        </template>
+                    </div>
+                </div>
+            </div>
+        </div>
         </div>
 
-        <div class="flex items-center gap-3 mt-2 lg:mt-0">
-            <button type="submit" class="flex-1 lg:flex-none bg-primary/10 text-primary px-6 py-2.5 rounded-xl text-sm font-bold hover:bg-primary/20 transition-all active:scale-[0.98]">
+        <div class="filter-actions">
+            <button type="submit" class="w-full sm:w-auto bg-primary/10 text-primary px-6 py-2.5 rounded-xl text-sm font-bold hover:bg-primary/20 transition-all active:scale-[0.98]">
                 Filter
             </button>
             @if(request()->hasAny(['search', 'category', 'account_id']))
-            <a href="{{ route('accounts.index') }}" class="text-on-surface-variant text-xs sm:text-sm hover:text-error transition-colors font-bold px-2">Reset</a>
+            <a href="{{ route('accounts.index') }}" class="w-full sm:w-auto text-center text-on-surface-variant text-xs sm:text-sm hover:text-error transition-colors font-bold px-2 py-2">Reset</a>
             @endif
         </div>
     </form>
 </div>
 
-<div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6 stagger-children">
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6 stagger-children">
     @foreach($accounts as $account)
     <div class="bg-surface-container-lowest p-4 sm:p-5 rounded-2xl shadow-sm hover-lift transition-all group relative border border-surface-container-low max-w-full overflow-hidden flex flex-col">
         <div class="flex justify-between items-start mb-3 sm:mb-4">

@@ -30,7 +30,7 @@
     </div>
     <form action="{{ route('report-attendance.store') }}" method="POST" class="flex flex-col sm:flex-row items-center gap-3 w-full xl:w-auto">
         @csrf
-        <div x-data="{ open: false, selected: '', selectedText: 'Pilih Jenis Laporan...' }" class="flex flex-col w-full sm:w-auto relative min-w-[240px]">
+        <div x-data="{ open: false, selected: '', selectedText: 'Pilih Jenis Laporan...' }" class="flex flex-col w-full sm:w-auto relative min-w-0 sm:min-w-[240px]">
             {{-- Input hidden to handle the actual form submission, no required attribute so it defers to Laravel backend validation natively --}}
             <input type="hidden" name="report_category" :value="selected">
             
@@ -221,7 +221,7 @@
                 <x-icon name="arrow_forward" class="w-3.5 h-3.5" />
             </a>
         </div>
-        <div class="overflow-x-auto scrollbar-thin scrollbar-thumb-surface-container shadow-inner">
+        <div class="table-scroll-mobile overflow-x-auto scrollbar-thin scrollbar-thumb-surface-container shadow-inner">
             <table class="w-full min-w-[600px] text-left border-collapse whitespace-nowrap">
                 <thead class="bg-surface-container-low/50">
                     <tr>
@@ -243,7 +243,8 @@
                             </div>
                         </td>
                         <td class="px-6 sm:px-8 py-5">
-                            <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider {{ $lead->statusCategory->css_class ?? 'bg-surface-container text-on-surface-variant' }}">
+                            <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider"
+                                  style="{{ $lead->statusCategory?->chip_style ?? 'background-color: rgba(115, 124, 127, 0.14); color: #737C7F;' }}">
                                 {{ $lead->statusCategory?->name ?? '-' }}
                             </span>
                         </td>

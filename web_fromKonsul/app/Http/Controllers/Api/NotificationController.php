@@ -5,44 +5,31 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\ConsultationNote;
 use App\Models\Reminder;
+use App\Services\NotificationSummaryService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Gate;
 
 class NotificationController extends Controller
 {
+    public function __construct(
+        private readonly NotificationSummaryService $notificationSummaryService
+    ) {
+    }
+
     public function unreadCount(): JsonResponse
     {
         $user = Auth::user();
-        
-        $cacheKey = "api_notif_{$user->id}";
-        
-        $cachedResponse = Cache::remember($cacheKey, 60, function () use ($user) {
-            $unreadNotesQuery = ConsultationNote::where('user_id', '!=', $user->id)
-                ->where('is_read', false)
-                ->whereHas('consultation', fn($q) => $q->forUser($user));
 
-            $unreadNotesCount = $unreadNotesQuery->count();
+        $summary = $this->notificationSummaryService->getForUser($user);
 
-            $upcomingRemindersQuery = Reminder::forUser($user)
-                ->where('is_read', false)
-                ->where('remind_at', '<=', Carbon::now()->addMinutes(30))
-                ->whereHas('consultation', fn($q) => $q->forUser($user));
-
-            $upcomingRemindersCount = $upcomingRemindersQuery->count();
-
-            return [
-                'unread_notes' => $unreadNotesCount,
-                'upcoming_reminders' => $upcomingRemindersCount,
-                'total' => $unreadNotesCount + $upcomingRemindersCount,
-            ];
-        });
-
-        $cachedResponse['timestamp'] = Carbon::now()->toIso8601String();
-
-        return response()->json($cachedResponse);
+        return response()->json([
+            'unread_notes' => $summary['unreadNotesCount'],
+            'upcoming_reminders' => $summary['upcomingRemindersCount'],
+            'total' => $summary['initialTotalAlerts'],
+            'timestamp' => Carbon::now()->toIso8601String(),
+        ]);
     }
 
     public function markNoteRead(ConsultationNote $note): JsonResponse
@@ -56,9 +43,7 @@ class NotificationController extends Controller
         }
 
         $note->update(['is_read' => true]);
-        
-        // Hapus cache Polling notifikasi milik user ini
-        Cache::forget("api_notif_{$user->id}");
+        $this->notificationSummaryService->forgetForUser($user->id);
         
         return response()->json(['success' => true]);
     }
@@ -73,9 +58,7 @@ class NotificationController extends Controller
         }
 
         $reminder->update(['is_read' => true]);
-        
-        // Hapus cache Polling notifikasi
-        Cache::forget("api_notif_{$user->id}");
+        $this->notificationSummaryService->forgetForUser($user->id);
         
         return response()->json(['success' => true]);
     }

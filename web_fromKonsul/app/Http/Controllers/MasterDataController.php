@@ -71,7 +71,7 @@ class MasterDataController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255|unique:status_categories,name',
-            'color' => 'required|string|max:7',
+            'color' => ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'],
         ]);
         $maxOrder = StatusCategory::max('sort_order') ?? 0;
         StatusCategory::create([
@@ -86,7 +86,7 @@ class MasterDataController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255|unique:status_categories,name,' . $status->id,
-            'color' => 'required|string|max:7',
+            'color' => ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'],
         ]);
         $status->update(['name' => $request->name, 'color' => $request->color]);
         return back()->with('success', 'Status berhasil diperbarui!');
@@ -111,7 +111,7 @@ class MasterDataController extends Controller
             'role' => ['required', new Enum(UserRole::class)],
             'account_id' => 'required_if:role,' . UserRole::Admin->value . '|nullable|exists:accounts,id',
         ], [
-            'account_id.required_if' => 'Account / Cabang wajib dipilih untuk pengguna dengan role Admin.',
+            'account_id.required_if' => 'Akun wajib dipilih untuk pengguna dengan role Admin.',
         ]);
 
         $role = UserRole::from($request->role);
@@ -125,6 +125,52 @@ class MasterDataController extends Controller
         ]);
 
         return back()->with('success', 'User baru berhasil ditambahkan!');
+    }
+
+    public function updateUser(Request $request, User $user)
+    {
+        $validated = $request->validate([
+            'edit_user_id' => 'required|integer',
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email,' . $user->id,
+            'role' => ['required', new Enum(UserRole::class)],
+            'account_id' => 'required_if:role,' . UserRole::Admin->value . '|nullable|exists:accounts,id',
+        ], [
+            'account_id.required_if' => 'Akun wajib dipilih untuk pengguna dengan role Admin.',
+        ]);
+
+        if ((int) $validated['edit_user_id'] !== $user->id) {
+            return back()
+                ->withInput()
+                ->with('error', 'Data user yang akan diperbarui tidak valid.');
+        }
+
+        $role = UserRole::from($validated['role']);
+
+        if (
+            $user->role === UserRole::SuperAdmin
+            && $role !== UserRole::SuperAdmin
+            && User::where('role', UserRole::SuperAdmin)->count() <= 1
+        ) {
+            return back()
+                ->withInput()
+                ->with('error', 'Tidak dapat mengubah Super Admin terakhir menjadi Admin biasa.');
+        }
+
+        $user->update([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'role' => $role,
+            'account_id' => $role === UserRole::SuperAdmin ? null : $validated['account_id'],
+        ]);
+
+        return redirect()
+            ->route('master-data.index', [
+                'tab' => 'users',
+                'search_user' => $request->search_user,
+                'users_page' => $request->users_page,
+            ])
+            ->with('success', "Data user {$user->name} berhasil diperbarui!");
     }
 
     public function destroyUser(User $user)

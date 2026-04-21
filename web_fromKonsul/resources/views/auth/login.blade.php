@@ -1,7 +1,7 @@
 @extends('layouts.guest')
 
 @section('content')
-<div x-data="{ showBugModal: false, WA_NUMBER: '6285168112098', bugMessage: '' }" class="w-full max-w-md animate-fade-in">
+<div x-data="loginPage({ waNumber: '6285168112098' })" class="w-full max-w-md animate-fade-in">
     {{-- Logo --}}
     <div class="text-center mb-10">
         <div class="w-16 h-16 rounded-2xl bg-primary flex items-center justify-center text-on-primary mx-auto mb-4 shadow-xl shadow-primary/20">
@@ -99,16 +99,7 @@
                                   placeholder="Contoh: Saya tidak bisa login, muncul tulisan 'Akses ditolak' padahal password sudah benar..."></textarea>
                                   
                         <button type="button" 
-                                @click="
-                                    if(bugMessage.trim() === '') {
-                                        alert('Isi pesan keluhan terlebih dahulu!');
-                                        return;
-                                    }
-                                    let text = encodeURIComponent('Halo Tim Database, saya ingin melaporkan bug/error di aplikasi E-REPORT:\n\n' + bugMessage);
-                                    window.open('https://api.whatsapp.com/send?phone=' + WA_NUMBER + '&text=' + text, '_blank');
-                                    showBugModal = false;
-                                    bugMessage = '';
-                                "
+                                @click="submitBugReport()"
                                 class="w-full bg-[#25D366] text-white py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-[#25D366]/20 hover:bg-[#1DA851] transition-all hover:scale-[1.02] active:scale-[0.98]">
                             <x-icon name="chat" class="w-[18px] h-[18px]" />
                             <span>Kirim ke WhatsApp</span>

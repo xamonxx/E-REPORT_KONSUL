@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\ThemePalette;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
@@ -12,40 +13,59 @@ class SettingsController extends Controller
         return view('settings.index');
     }
 
-    public function updateProfile(Request $request)
+    public function updateAccount(Request $request)
     {
         $user = auth()->user();
 
-        $validated = $request->validate([
+        $validatedProfile = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $user->id,
         ]);
 
-        $user->update($validated);
+        $wantsPasswordUpdate = $request->filled('current_password')
+            || $request->filled('password')
+            || $request->filled('password_confirmation');
 
-        return back()->with('success', 'Profil berhasil diperbarui!');
+        if ($wantsPasswordUpdate) {
+            $validatedPassword = $request->validate([
+                'current_password' => 'required|string',
+                'password' => 'required|string|min:8|confirmed',
+            ]);
+
+            if (!Hash::check($validatedPassword['current_password'], $user->password)) {
+                return back()->withErrors(['current_password' => 'Password lama tidak sesuai.']);
+            }
+
+            if (Hash::check($validatedPassword['password'], $user->password)) {
+                return back()->withErrors(['password' => 'Password baru tidak boleh sama dengan password lama.']);
+            }
+
+            $user->password = Hash::make($validatedPassword['password']);
+        }
+
+        $user->name = $validatedProfile['name'];
+        $user->email = $validatedProfile['email'];
+        $user->save();
+
+        $message = $wantsPasswordUpdate
+            ? 'Profil dan password berhasil diperbarui!'
+            : 'Profil berhasil diperbarui!';
+
+        return back()->with('success', $message);
     }
 
-    public function updatePassword(Request $request)
+    public function updateTheme(Request $request)
     {
-        $request->validate([
-            'current_password' => 'required|string',
-            'password' => 'required|string|min:8|confirmed',
+        $validated = $request->validate([
+            'primary_color' => ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'],
         ]);
 
         $user = auth()->user();
+        $user->update([
+            'primary_color' => ThemePalette::normalize($validated['primary_color']),
+        ]);
 
-        if (!Hash::check($request->current_password, $user->password)) {
-            return back()->withErrors(['current_password' => 'Password lama tidak sesuai.']);
-        }
-
-        // Don't allow reusing the same password
-        if (Hash::check($request->password, $user->password)) {
-            return back()->withErrors(['password' => 'Password baru tidak boleh sama dengan password lama.']);
-        }
-
-        $user->update(['password' => Hash::make($request->password)]);
-
-        return back()->with('success', 'Password berhasil diubah!');
+        return back()->with('success', 'Warna utama berhasil diperbarui!');
     }
+
 }

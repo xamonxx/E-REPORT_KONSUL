@@ -57,9 +57,9 @@
                 </div>
             </div>
 
-            {{-- Studio Name --}}
+            {{-- Account Name --}}
             <div class="space-y-2">
-                <label class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest px-1">Nama Studio / Akun <span class="text-error">*</span></label>
+                <label class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest px-1">Nama Akun <span class="text-error">*</span></label>
                 <input type="text" name="name" value="{{ old('name', $account->name) }}" 
                        class="w-full bg-surface-container-low border-0 rounded-xl px-4 py-3.5 text-sm focus:ring-2 focus:ring-primary/20 placeholder:text-outline-variant shadow-inner font-bold" 
                        required />
@@ -76,14 +76,14 @@
             {{-- Target Setting --}}
             <div class="space-y-2">
                 <label class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest px-1">Target Leads Bulanan</label>
-                <div class="relative max-w-[180px]">
+                <div class="relative w-full sm:max-w-[180px]">
                     <input type="number" name="target_leads" value="{{ old('target_leads', $account->target_leads) }}" 
                            class="w-full bg-surface-container-low border-0 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 shadow-inner font-bold text-center" min="1" />
                 </div>
             </div>
 
             {{-- Actions --}}
-            <div class="flex flex-col-reverse sm:flex-row gap-4 pt-6 border-t border-surface-container-low">
+            <div class="form-actions-responsive pt-6 border-t border-surface-container-low">
                 <a href="{{ route('accounts.index') }}" 
                    class="flex-1 sm:flex-none flex items-center justify-center border border-outline-variant/30 text-on-surface-variant px-8 py-3.5 rounded-xl text-sm font-bold hover:bg-surface-container transition-all active:scale-95">
                     Batal

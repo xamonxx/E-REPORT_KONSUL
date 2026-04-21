@@ -51,7 +51,8 @@
         <div class="space-y-6 pt-6 border-t border-surface-container-low">
             <div class="space-y-1">
                 <p class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest px-1">Status Saat Ini</p>
-                <div class="inline-block px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider {{ $consultation->statusCategory->css_class ?? 'bg-surface-container text-on-surface-variant' }} shadow-sm">
+                <div class="inline-block px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider shadow-sm"
+                     style="{{ $consultation->statusCategory?->chip_style ?? 'background-color: rgba(115, 124, 127, 0.14); color: #737C7F;' }}">
                     {{ $consultation->statusCategory?->name ?? 'Belum Ada Status' }}
                 </div>
             </div>

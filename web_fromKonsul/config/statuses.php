@@ -1,8 +1,6 @@
 <?php
 
 return [
-    'new_contact' => 'Hanya Tanya Tanya',
+    'deal' => 'Selesai Deal',
     'survey' => 'Masuk Survey',
-    'deal' => 'Selesai/Deal',
-    'default' => 'Masuk Survey',
 ];

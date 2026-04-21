@@ -45,13 +45,13 @@
         </div>
     </div>
     
-    <div class="overflow-x-auto scrollbar-thin scrollbar-thumb-surface-container shadow-inner">
+    <div class="table-scroll-mobile overflow-x-auto scrollbar-thin scrollbar-thumb-surface-container shadow-inner">
         <table class="w-full min-w-[750px] text-left border-collapse whitespace-nowrap">
             <thead>
                 <tr class="bg-surface-container-low/50">
                     <th class="px-6 sm:px-8 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest text-center">Waktu Report</th>
                     <th class="px-6 sm:px-8 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest font-headline">Administrator</th>
-                    <th class="px-6 sm:px-8 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Akun / Cabang</th>
+                    <th class="px-6 sm:px-8 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Akun</th>
                     <th class="px-6 sm:px-8 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest text-right">Status Absensi</th>
                 </tr>
             </thead>
