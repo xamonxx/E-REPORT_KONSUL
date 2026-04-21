@@ -78,7 +78,7 @@
 
 /* ─── Status Chip Colors ─────────────────────────────── */
 .chip-hanya-tanya { background: rgba(234, 179, 8, 0.12); color: #a16207; }
-.chip-masuk-survey { background: rgba(133, 130, 255, 0.12); color: #6d5dfc; }
+.chip-masuk-survey { background: rgba(217, 119, 6, 0.12); color: #d97706; }
 .chip-kendala-anggaran { background: rgba(159, 64, 61, 0.12); color: #9f403d; }
 .chip-tidak-ada-respon { background: rgba(115, 124, 127, 0.12); color: #586064; }
 .chip-selesai-deal { background: rgba(0, 109, 74, 0.12); color: #006d4a; }
@@ -98,7 +98,7 @@ select option {
 select option:checked,
 select option:hover,
 select option:focus {
-    background: #e2dfff linear-gradient(0deg, #e2dfff 0%, #e2dfff 100%) !important;
-    background-color: #e2dfff !important;
-    color: #3f33d6 !important;
+    background: #fef3c7 linear-gradient(0deg, #fef3c7 0%, #fef3c7 100%) !important;
+    background-color: #fef3c7 !important;
+    color: #78350f !important;
 }

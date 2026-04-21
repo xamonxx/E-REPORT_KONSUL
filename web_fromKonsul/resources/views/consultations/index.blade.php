@@ -3,7 +3,12 @@
 
 @section('content')
 {{-- Page Header --}}
-<div x-data="{ showImportModal: {{ $errors->has('csv_file') ? 'true' : 'false' }}, showCreateModal: {{ old('client_name') ? 'true' : 'false' }} }" class="flex flex-col xl:flex-row xl:items-end justify-between gap-6 mb-6">
+<div x-data="{ 
+    showImportModal: {{ $errors->has('csv_file') ? 'true' : 'false' }}, 
+    showCreateModal: {{ old('client_name') ? 'true' : 'false' }},
+    showEditModal: false,
+    editData: {}
+}" id="consultations-page" class="flex flex-col xl:flex-row xl:items-end justify-between gap-6 mb-6">
     <div>
         <h2 class="text-2xl sm:text-3xl font-extrabold text-on-surface tracking-tight font-headline">Leads Management</h2>
         <p class="text-sm sm:text-base text-on-surface-variant mt-1">Kelola semua data konsultasi klien.</p>
@@ -269,6 +274,179 @@
             </div>
         </div>
     </template>
+
+    {{-- Edit Modal --}}
+    <template x-teleport="body">
+        <div x-show="showEditModal" x-cloak class="fixed inset-0 z-[60] flex flex-col items-center justify-end sm:justify-center bg-inverse-surface/50 backdrop-blur-sm sm:p-4"
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0">
+            
+            <div @click.away="showEditModal = false" 
+                 class="bg-surface-container-lowest w-full sm:max-w-2xl sm:rounded-2xl shadow-2xl flex flex-col max-h-[90vh] sm:max-h-[85vh] rounded-t-3xl sm:rounded-t-2xl animate-fade-in"
+                 x-transition:enter="transition ease-out duration-300 delay-75"
+                 x-transition:enter-start="opacity-0 translate-y-10"
+                 x-transition:enter-end="opacity-100 translate-y-0">
+                  
+                {{-- Modal Header --}}
+                <div class="px-6 py-5 border-b border-surface-container-low shrink-0 flex justify-between items-center bg-surface-container-lowest sm:rounded-t-2xl rounded-t-3xl z-10 sticky top-0">
+                    <div>
+                        <h3 class="font-extrabold text-on-surface font-headline text-xl">Edit Konsultasi</h3>
+                        <p class="text-xs text-on-surface-variant font-medium mt-0.5">Ubah data lead klien.</p>
+                    </div>
+                    <button @click="showEditModal = false" class="w-8 h-8 rounded-full bg-surface-container hover:bg-error/10 hover:text-error text-on-surface-variant flex items-center justify-center transition-colors">
+                        <x-icon name="close" class="w-[18px] h-[18px]" />
+                    </button>
+                </div>
+
+                {{-- Modal Body (Scrollable) --}}
+                <div class="p-6 overflow-y-auto scrollbar-thin scrollbar-thumb-surface-container flex-1">
+                    <form method="POST" id="form-edit-lead" :action="buildConsultationUpdateUrl(editData.id)" class="space-y-6">
+                        @csrf
+                        @method('PUT')
+                        <input type="hidden" name="id" :value="editData.id">
+
+                        {{-- Consultation ID (Read-only) --}}
+                        <div class="space-y-2">
+                            <label class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest px-1">ID Konsultasi</label>
+                            <div class="bg-surface-container-low rounded-xl px-4 py-3 text-sm font-mono font-bold text-primary shadow-inner border border-surface-container text-center sm:text-left">
+                                <span x-text="editData.consultation_id"></span>
+                            </div>
+                        </div>
+
+                        {{-- Client Name + Phone --}}
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <div class="space-y-2">
+                                <label for="edit_client_name" class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest px-1">Nama Klien <span class="text-error">*</span></label>
+                                <input type="text" id="edit_client_name" name="client_name" x-model="editData.client_name"
+                                       class="w-full bg-surface-container-low border-0 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 placeholder:text-outline-variant shadow-inner font-bold"
+                                       placeholder="Nama lengkap klien" required />
+                            </div>
+                            <div class="space-y-2">
+                                <label for="edit_phone" class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest px-1">No. Telepon/WA <span class="text-error">*</span></label>
+                                <input type="text" id="edit_phone" name="phone" x-model="editData.phone" maxlength="25"
+                                       oninput="this.value = this.value.replace(/[^0-9\s\-\+\(\)]/g, '')"
+                                       class="w-full bg-surface-container-low border-0 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 placeholder:text-outline-variant shadow-inner font-bold"
+                                       placeholder="Contoh: 08123456789" required />
+                            </div>
+                        </div>
+
+                        {{-- Province + City --}}
+                        <div class="space-y-5">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                <div class="space-y-2">
+                                    <label for="edit_province" class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest px-1">Provinsi Domisili</label>
+                                    <div class="relative group">
+                                        <select id="edit_province" name="province" x-model="editData.province" class="w-full bg-surface-container-low border-0 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 appearance-none bg-none shadow-inner font-medium">
+                                            <option value="">Pilih Provinsi...</option>
+                                            @foreach($provinces as $prov)
+                                            <option value="{{ $prov }}">{{ $prov }}</option>
+                                            @endforeach
+                                        </select>
+                                        <x-icon name="expand_more" class="w-5 h-5 absolute right-4 top-1/2 -translate-y-1/2 text-outline-variant pointer-events-none group-focus-within:rotate-180 transition-transform" />
+                                    </div>
+                                </div>
+                                <div class="space-y-2">
+                                    <label for="edit_city" class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest px-1">Kota / Kabupaten</label>
+                                    <input type="text" id="edit_city" name="city" x-model="editData.city"
+                                           class="w-full bg-surface-container-low border-0 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 placeholder:text-outline-variant shadow-inner font-medium"
+                                           placeholder="Nama kota/kabupaten" />
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                <div class="space-y-2">
+                                    <label for="edit_district" class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest px-1">Kecamatan <span class="text-outline-variant font-medium normal-case">(opsional)</span></label>
+                                    <input type="text" id="edit_district" name="district" x-model="editData.district"
+                                           class="w-full bg-surface-container-low border-0 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 placeholder:text-outline-variant shadow-inner font-medium"
+                                           placeholder="Nama kecamatan" />
+                                </div>
+                                <div class="space-y-2">
+                                    <label for="edit_address" class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest px-1">Alamat Lengkap <span class="text-outline-variant font-medium normal-case">(opsional)</span></label>
+                                    <textarea id="edit_address" name="address" rows="2" x-model="editData.address"
+                                              class="w-full bg-surface-container-low border-0 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 resize-none shadow-inner placeholder:text-outline-variant font-medium"
+                                              placeholder="Masukkan alamat lengkap"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Account Selection (Super Admin Only) --}}
+                        @if(auth()->user()->isSuperAdmin())
+                        <div class="space-y-2">
+                            <label for="edit_account_id" class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest px-1">Akun Cabin Interior <span class="text-error">*</span></label>
+                            <div class="relative group">
+                                <select id="edit_account_id" name="account_id" x-model="editData.account_id" class="w-full bg-surface-container-low border-0 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 appearance-none bg-none shadow-inner font-bold text-primary" required>
+                                    <option value="">Pilih Cabin Studio...</option>
+                                    @foreach($accounts as $acc)
+                                    <option value="{{ $acc->id }}">{{ $acc->name }}</option>
+                                    @endforeach
+                                </select>
+                                <x-icon name="expand_more" class="w-5 h-5 absolute right-4 top-1/2 -translate-y-1/2 text-outline-variant pointer-events-none group-focus-within:rotate-180 transition-transform" />
+                            </div>
+                        </div>
+                        @else
+                        <input type="hidden" name="account_id" x-model="editData.account_id" />
+                        @endif
+
+                        {{-- Category + Status --}}
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <div class="space-y-2">
+                                <label for="edit_needs_category_id" class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest px-1">Jenis Kebutuhan <span class="text-error">*</span></label>
+                                <div class="relative group">
+                                    <select id="edit_needs_category_id" name="needs_category_id" x-model="editData.needs_category_id" class="w-full bg-surface-container-low border-0 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 appearance-none bg-none shadow-inner font-bold" required>
+                                        <option value="">Pilih Kategori...</option>
+                                        @foreach($categories as $cat)
+                                        <option value="{{ $cat->id }}">{{ $cat->name }}</option>
+                                        @endforeach
+                                    </select>
+                                    <x-icon name="expand_more" class="w-5 h-5 absolute right-4 top-1/2 -translate-y-1/2 text-outline-variant pointer-events-none" />
+                                </div>
+                            </div>
+                            <div class="space-y-2">
+                                <label for="edit_status_category_id" class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest px-1">Status Prospek <span class="text-error">*</span></label>
+                                <div class="relative group">
+                                    <select id="edit_status_category_id" name="status_category_id" x-model="editData.status_category_id" class="w-full bg-surface-container-low border-0 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 appearance-none bg-none shadow-inner font-bold" required>
+                                        <option value="">Pilih Status...</option>
+                                        @foreach($statuses as $st)
+                                        <option value="{{ $st->id }}">{{ $st->name }}</option>
+                                        @endforeach
+                                    </select>
+                                    <x-icon name="expand_more" class="w-5 h-5 absolute right-4 top-1/2 -translate-y-1/2 text-outline-variant pointer-events-none" />
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Date + Notes --}}
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <div class="space-y-2">
+                                <label for="edit_consultation_date" class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest px-1">Tanggal Konsultasi Pertama</label>
+                                <input type="date" id="edit_consultation_date" name="consultation_date" x-model="editData.consultation_date"
+                                       class="w-full bg-surface-container-low border-0 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 shadow-inner font-medium" />
+                            </div>
+                        </div>
+                        <div class="space-y-2">
+                            <label for="edit_notes" class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest px-1">Catatan Follow-Up</label>
+                            <textarea id="edit_notes" name="notes" rows="3" x-model="editData.notes"
+                                      class="w-full bg-surface-container-low border-0 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 resize-none shadow-inner placeholder:text-outline-variant leading-relaxed font-medium"
+                                      placeholder="Tambahkan info follow-up..."></textarea>
+                        </div>
+                    </form>
+                </div>
+
+                {{-- Modal Footer --}}
+                <div class="px-6 py-4 bg-surface-container-lowest border-t border-surface-container-low shrink-0 flex flex-col sm:flex-row justify-end gap-3 rounded-b-2xl">
+                    <button type="button" @click="showEditModal = false" class="px-6 py-2.5 rounded-xl font-bold text-sm text-on-surface-variant hover:bg-surface-container-low transition-colors w-full sm:w-auto">Batal</button>
+                    <button type="submit" form="form-edit-lead" class="bg-primary text-on-primary px-8 py-2.5 rounded-xl font-bold text-sm shadow-lg shadow-primary/20 hover:bg-primary-dim transition-colors flex items-center justify-center gap-2 w-full sm:w-auto">
+                        <x-icon name="save" class="w-4 h-4" />
+                        <span>Simpan Perubahan</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </template>
 </div>
 
 {{-- Filters --}}
@@ -409,11 +587,23 @@
                                title="Detail">
                                 <x-icon name="visibility" class="w-[18px] h-[18px]" />
                             </a>
-                            <a href="{{ route('consultations.edit', $c) }}"
-                               class="w-8 h-8 rounded-lg hover:bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-primary transition-colors"
-                               title="Edit">
+                            <button type="button" class="btn-edit w-8 h-8 rounded-lg hover:bg-surface-container flex items-center justify-center text-on-surface-variant hover:text-primary transition-colors"
+                                data-id="{{ $c->id }}"
+                                data-name="{{ htmlspecialchars($c->client_name, ENT_QUOTES) }}"
+                                data-phone="{{ $c->phone }}"
+                                data-province="{{ $c->province ?? '' }}"
+                                data-city="{{ $c->city ?? '' }}"
+                                data-district="{{ $c->district ?? '' }}"
+                                data-address="{{ $c->address ?? '' }}"
+                                data-account="{{ $c->account_id }}"
+                                data-category="{{ $c->needs_category_id }}"
+                                data-status="{{ $c->status_category_id }}"
+                                data-date="{{ $c->consultation_date?->format('Y-m-d') }}"
+                                data-notes="{{ htmlspecialchars($c->notes ?? '', ENT_QUOTES) }}"
+                                data-consultation-id="{{ $c->consultation_id }}"
+                                title="Edit">
                                 <x-icon name="edit" class="w-[18px] h-[18px]" />
-                            </a>
+                            </button>
                             <form method="POST" action="{{ route('consultations.destroy', $c) }}"
                                   id="delete-form-{{ $c->id }}">
                                 @csrf @method('DELETE')
@@ -532,6 +722,42 @@
         })
         .catch(() => { el.style.opacity = '1'; });
     }
+
+    function buildConsultationUpdateUrl(id) {
+        if (!id) return '#';
+        return '{{ url('consultations') }}/' + id;
+    }
+
+    // Edit Modal Handler
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.btn-edit').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                const data = {
+                    id: this.getAttribute('data-id'),
+                    consultation_id: this.getAttribute('data-consultation-id'),
+                    client_name: this.getAttribute('data-name'),
+                    phone: this.getAttribute('data-phone'),
+                    province: this.getAttribute('data-province'),
+                    city: this.getAttribute('data-city'),
+                    district: this.getAttribute('data-district'),
+                    address: this.getAttribute('data-address'),
+                    account_id: this.getAttribute('data-account'),
+                    needs_category_id: this.getAttribute('data-category'),
+                    status_category_id: this.getAttribute('data-status'),
+                    consultation_date: this.getAttribute('data-date'),
+                    notes: this.getAttribute('data-notes')
+                };
+                
+                // Alpine data access
+                const alpineEl = document.getElementById('consultations-page');
+                if (alpineEl && window.Alpine) {
+                    const alpineData = Alpine.$data(alpineEl);
+                    alpineData.editData = data;
+                    alpineData.showEditModal = true;
+                }
+            });
+        });
+    });
 </script>
 @endpush
 @endsection

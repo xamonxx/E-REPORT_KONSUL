@@ -3,10 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Consultation;
 use App\Models\ConsultationNote;
 use App\Models\Reminder;
-use App\Models\StatusCategory;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
@@ -28,25 +26,17 @@ class NotificationController extends Controller
 
             $unreadNotesCount = $unreadNotesQuery->count();
 
-            $upcomingRemindersQuery = Reminder::where('user_id', $user->id)
+            $upcomingRemindersQuery = Reminder::forUser($user)
                 ->where('is_read', false)
                 ->where('remind_at', '<=', Carbon::now()->addMinutes(30))
                 ->whereHas('consultation', fn($q) => $q->forUser($user));
 
             $upcomingRemindersCount = $upcomingRemindersQuery->count();
 
-            // New leads berbasis status indikasi awal (direct ID lookup, no JOIN)
-            $newContactStatusId = StatusCategory::where('name', config('statuses.new_contact', 'Kontak Masuk'))->value('id');
-
-            $newLeadsCount = $newContactStatusId
-                ? Consultation::where('status_category_id', $newContactStatusId)->forUser($user)->count()
-                : 0;
-
             return [
                 'unread_notes' => $unreadNotesCount,
                 'upcoming_reminders' => $upcomingRemindersCount,
-                'new_leads' => $newLeadsCount,
-                'total' => $unreadNotesCount + $upcomingRemindersCount + $newLeadsCount,
+                'total' => $unreadNotesCount + $upcomingRemindersCount,
             ];
         });
 

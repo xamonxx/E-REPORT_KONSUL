@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
+use App\Enums\UserRole;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -52,20 +53,45 @@ class AppServiceProvider extends ServiceProvider
         Consultation::deleted($clearDashboardCache);
         ReportAttendance::created($clearDashboardCache);
 
-        // Invalidate per-user notification caches when notes are created
-        ConsultationNote::created(function (ConsultationNote $note) {
-            $consultation = $note->consultation;
-            if ($consultation) {
-                $accountId = $consultation->account_id;
-                $users = \App\Models\User::where(function ($q) use ($accountId) {
-                    $q->where('account_id', $accountId)
-                      ->orWhere('role', \App\Enums\UserRole::SuperAdmin);
-                })->pluck('id');
-                foreach ($users as $userId) {
-                    Cache::forget("unread_notes_count_{$userId}");
-                    Cache::forget("api_notif_{$userId}");
-                }
+        $forgetNotificationCaches = function (?Consultation $consultation, ?int $ownerUserId = null) {
+            if (!$consultation) {
+                return;
             }
+
+            $accountId = $consultation->account_id;
+            $users = \App\Models\User::query()
+                ->where(function ($q) use ($accountId, $ownerUserId) {
+                    $q->where('account_id', $accountId)
+                        ->orWhere('role', UserRole::SuperAdmin);
+
+                    if ($ownerUserId) {
+                        $q->orWhere('id', $ownerUserId);
+                    }
+                })
+                ->pluck('id')
+                ->unique();
+
+            foreach ($users as $userId) {
+                Cache::forget("unread_notes_count_{$userId}");
+                Cache::forget("api_notif_{$userId}");
+            }
+        };
+
+        // Invalidate per-user notification caches when notes are created
+        ConsultationNote::created(function (ConsultationNote $note) use ($forgetNotificationCaches) {
+            $forgetNotificationCaches($note->consultation, $note->user_id);
+        });
+
+        Reminder::created(function (Reminder $reminder) use ($forgetNotificationCaches) {
+            $forgetNotificationCaches($reminder->consultation, $reminder->user_id);
+        });
+
+        Reminder::updated(function (Reminder $reminder) use ($forgetNotificationCaches) {
+            $forgetNotificationCaches($reminder->consultation, $reminder->user_id);
+        });
+
+        Reminder::deleted(function (Reminder $reminder) use ($forgetNotificationCaches) {
+            $forgetNotificationCaches($reminder->consultation, $reminder->user_id);
         });
 
         // ── View Composer: header notifications ──────────────
@@ -73,17 +99,15 @@ class AppServiceProvider extends ServiceProvider
             if (auth()->check()) {
                 $user = auth()->user();
 
-                $unreadNotesCount = Cache::remember("unread_notes_count_{$user->id}", 300, function () use ($user) {
-                    return ConsultationNote::where('is_read', false)
-                        ->where('user_id', '!=', $user->id)
-                        ->whereHas('consultation', fn($q) => $q->forUser($user))
-                        ->count();
-                });
+                $unreadNotesCount = ConsultationNote::where('is_read', false)
+                    ->where('user_id', '!=', $user->id)
+                    ->whereHas('consultation', fn($q) => $q->forUser($user))
+                    ->count();
 
-                // Header dropdown: active reminders (eager load consultation to prevent N+1)
-                $activeReminders = Reminder::where('user_id', $user->id)
+                // Header dropdown: active reminders (eager load consultation & user)
+                $activeReminders = Reminder::forUser($user)
                     ->where('is_read', false)
-                    ->with('consultation:id,client_name')
+                    ->with(['consultation:id,client_name', 'user:id,name'])
                     ->orderBy('remind_at', 'asc')
                     ->take(5)
                     ->get();

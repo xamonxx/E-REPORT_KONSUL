@@ -28,7 +28,7 @@
         <div class="flex items-center gap-2 sm:gap-4 text-on-surface-variant">
             {{-- Notifications / Reminders Dropdown --}}
             <div x-data="{ open: false }" class="relative">
-                <button @click="open = !open" @click.away="open = false" class="relative opacity-80 hover:text-indigo-500 transition-colors">
+                <button @click="open = !open" @click.away="open = false" class="relative opacity-80 hover:text-primary transition-colors">
                     <x-icon name="notifications" class="w-6 h-6" />
                     <span x-show="badgeCount > 0" x-cloak class="absolute -top-1 -right-1 w-4 h-4 bg-error text-on-error rounded-full text-[9px] font-bold flex items-center justify-center border border-white"
                           x-text="badgeCount"></span>
@@ -46,7 +46,7 @@
                             <span class="text-[10px] font-bold text-primary uppercase tracking-wider">Chat / Catatan Baru</span>
                         </div>
                         @foreach($unreadNotes as $note)
-                        <a href="{{ route('consultations.show', $note->consultation_id) }}" class="block p-4 border-b border-surface-container-low hover:bg-primary/[0.02] transition-colors group">
+                        <a href="{{ route('consultations.show', $note->consultation->id) }}" class="block p-4 border-b border-surface-container-low hover:bg-primary/[0.02] transition-colors group">
                             <div class="flex items-start gap-3">
                                 <div class="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center text-primary font-bold text-[10px] shrink-0">
                                     {{ strtoupper(substr($note->user->name, 0, 2)) }}
@@ -80,7 +80,12 @@
                                 </p>
                             </a>
                             <div class="mt-2 flex justify-between items-center">
-                                <span class="text-[10px] font-medium text-outline-variant">{{ $reminder->consultation->client_name }}</span>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-[10px] font-medium text-outline-variant">{{ $reminder->consultation->client_name }}</span>
+                                    @if($reminder->user && $reminder->user->id !== auth()->id())
+                                        <span class="text-[10px] font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded">{{ $reminder->user->name }}</span>
+                                    @endif
+                                </div>
                                 <form method="POST" action="{{ route('reminders.read', $reminder) }}">
                                     @csrf
                                     <button type="submit" class="text-[10px] bg-primary/10 text-primary px-2 py-1 rounded font-bold hover:bg-primary/20 transition-colors">Tandai Selesai</button>
@@ -97,7 +102,7 @@
                 </div>
             </div>
             
-            <button class="opacity-80 hover:text-indigo-500 transition-colors hidden sm:block">
+            <button class="opacity-80 hover:text-primary transition-colors hidden sm:block">
                 <x-icon name="help_outline" class="w-6 h-6" />
             </button>
         </div>

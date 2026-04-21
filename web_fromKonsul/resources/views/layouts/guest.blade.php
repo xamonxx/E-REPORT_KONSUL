@@ -11,12 +11,13 @@
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script>
         tailwind.config = {
+            darkMode: "class",
             theme: {
                 extend: {
                     colors: {
-                        "primary": "#4d44e3",
-                        "on-primary": "#faf6ff",
-                        "primary-container": "#e2dfff",
+                        "primary": "#d97706",
+                        "on-primary": "#ffffff",
+                        "primary-container": "#fef3c7",
                         "on-surface": "#2b3437",
                         "on-surface-variant": "#586064",
                         "surface": "#f8f9fa",
@@ -41,7 +42,7 @@
 
     </style>
 </head>
-<body class="min-h-screen bg-gradient-to-br from-slate-100 via-indigo-50/40 to-surface flex items-center justify-center p-4">
+<body class="min-h-screen bg-gradient-to-br from-slate-100 via-amber-50/40 to-surface flex items-center justify-center p-4">
     @yield('content')
 </body>
 </html>

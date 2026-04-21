@@ -27,7 +27,7 @@
     <nav class="flex-1 px-4 space-y-1 overflow-y-auto custom-scrollbar">
         <a href="{{ route('dashboard') }}" @click="if(window.innerWidth < 1024) sidebarOpen = false"
            class="flex items-center py-3 rounded-lg transition-colors font-headline text-sm tracking-tight
-                  {{ $currentRoute === 'dashboard' ? 'text-indigo-600 font-semibold border-r-2 border-indigo-600 bg-white/50' : 'text-slate-500 hover:bg-white/50' }}
+                  {{ $currentRoute === 'dashboard' ? 'text-primary font-semibold border-r-2 border-primary bg-white/50' : 'text-slate-500 hover:bg-white/50' }}
                   {{ $isSidebarOpen ? 'gap-3 px-4 justify-start' : 'justify-center px-0' }}"
            :class="(isMobile || sidebarOpen) ? '!gap-3 !px-4 !justify-start' : '!justify-center !px-0'">
             <x-icon name="dashboard" class="w-5 h-5 shrink-0" />
@@ -37,7 +37,7 @@
         @if($user->isSuperAdmin())
         <a href="{{ route('accounts.index') }}" @click="if(window.innerWidth < 1024) sidebarOpen = false"
            class="flex items-center py-3 rounded-lg transition-colors font-headline text-sm tracking-tight
-                  {{ str_starts_with($currentRoute, 'accounts') ? 'text-indigo-600 font-semibold border-r-2 border-indigo-600 bg-white/50' : 'text-slate-500 hover:bg-white/50' }}
+                  {{ str_starts_with($currentRoute, 'accounts') ? 'text-primary font-semibold border-r-2 border-primary bg-white/50' : 'text-slate-500 hover:bg-white/50' }}
                   {{ $isSidebarOpen ? 'gap-3 px-4 justify-start' : 'justify-center px-0' }}"
            :class="(isMobile || sidebarOpen) ? '!gap-3 !px-4 !justify-start' : '!justify-center !px-0'">
             <x-icon name="folder_shared" class="w-5 h-5 shrink-0" />
@@ -47,7 +47,7 @@
 
         <a href="{{ route('consultations.index') }}" @click="if(window.innerWidth < 1024) sidebarOpen = false"
            class="flex items-center py-3 rounded-lg transition-colors font-headline text-sm tracking-tight
-                  {{ str_starts_with($currentRoute, 'consultations') ? 'text-indigo-600 font-semibold border-r-2 border-indigo-600 bg-white/50' : 'text-slate-500 hover:bg-white/50' }}
+                  {{ str_starts_with($currentRoute, 'consultations') ? 'text-primary font-semibold border-r-2 border-primary bg-white/50' : 'text-slate-500 hover:bg-white/50' }}
                   {{ $isSidebarOpen ? 'gap-3 px-4 justify-start' : 'justify-center px-0' }}"
            :class="(isMobile || sidebarOpen) ? '!gap-3 !px-4 !justify-start' : '!justify-center !px-0'">
             <x-icon name="person_search" class="w-5 h-5 shrink-0" />
@@ -56,7 +56,7 @@
 
         <a href="{{ route('analytics') }}" @click="if(window.innerWidth < 1024) sidebarOpen = false"
            class="flex items-center py-3 rounded-lg transition-colors font-headline text-sm tracking-tight
-                  {{ $currentRoute === 'analytics' ? 'text-indigo-600 font-semibold border-r-2 border-indigo-600 bg-white/50' : 'text-slate-500 hover:bg-white/50' }}
+                  {{ $currentRoute === 'analytics' ? 'text-primary font-semibold border-r-2 border-primary bg-white/50' : 'text-slate-500 hover:bg-white/50' }}
                   {{ $isSidebarOpen ? 'gap-3 px-4 justify-start' : 'justify-center px-0' }}"
            :class="(isMobile || sidebarOpen) ? '!gap-3 !px-4 !justify-start' : '!justify-center !px-0'">
             <x-icon name="leaderboard" class="w-5 h-5 shrink-0" />
@@ -66,7 +66,7 @@
         @if($user->isSuperAdmin())
         <a href="{{ route('report-attendances.index') }}" @click="if(window.innerWidth < 1024) sidebarOpen = false"
            class="flex items-center py-3 rounded-lg transition-colors font-headline text-sm tracking-tight
-                  {{ str_starts_with($currentRoute, 'report-attendances') ? 'text-indigo-600 font-semibold border-r-2 border-indigo-600 bg-white/50' : 'text-slate-500 hover:bg-white/50' }}
+                  {{ str_starts_with($currentRoute, 'report-attendances') ? 'text-primary font-semibold border-r-2 border-primary bg-white/50' : 'text-slate-500 hover:bg-white/50' }}
                   {{ $isSidebarOpen ? 'gap-3 px-4 justify-start' : 'justify-center px-0' }}"
            :class="(isMobile || sidebarOpen) ? '!gap-3 !px-4 !justify-start' : '!justify-center !px-0'">
             <x-icon name="assignment_turned_in" class="w-5 h-5 shrink-0" />
@@ -77,7 +77,7 @@
         @if($user->isSuperAdmin())
         <a href="{{ route('master-data.index') }}" @click="if(window.innerWidth < 1024) sidebarOpen = false"
            class="flex items-center py-3 rounded-lg transition-colors font-headline text-sm tracking-tight
-                  {{ str_starts_with($currentRoute, 'master-data') ? 'text-indigo-600 font-semibold border-r-2 border-indigo-600 bg-white/50' : 'text-slate-500 hover:bg-white/50' }}
+                  {{ str_starts_with($currentRoute, 'master-data') ? 'text-primary font-semibold border-r-2 border-primary bg-white/50' : 'text-slate-500 hover:bg-white/50' }}
                   {{ $isSidebarOpen ? 'gap-3 px-4 justify-start' : 'justify-center px-0' }}"
            :class="(isMobile || sidebarOpen) ? '!gap-3 !px-4 !justify-start' : '!justify-center !px-0'">
             <x-icon name="database" class="w-5 h-5 shrink-0" />
@@ -87,7 +87,7 @@
 
         <a href="{{ route('settings') }}" @click="if(window.innerWidth < 1024) sidebarOpen = false"
            class="flex items-center py-3 rounded-lg transition-colors font-headline text-sm tracking-tight
-                  {{ $currentRoute === 'settings' ? 'text-indigo-600 font-semibold border-r-2 border-indigo-600 bg-white/50' : 'text-slate-500 hover:bg-white/50' }}
+                  {{ $currentRoute === 'settings' ? 'text-primary font-semibold border-r-2 border-primary bg-white/50' : 'text-slate-500 hover:bg-white/50' }}
                   {{ $isSidebarOpen ? 'gap-3 px-4 justify-start' : 'justify-center px-0' }}"
            :class="(isMobile || sidebarOpen) ? '!gap-3 !px-4 !justify-start' : '!justify-center !px-0'">
             <x-icon name="settings" class="w-5 h-5 shrink-0" />

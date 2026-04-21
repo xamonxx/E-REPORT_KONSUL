@@ -146,9 +146,9 @@
             <div class="space-y-2">
                 <label class="block text-[10px] font-bold text-on-surface-variant uppercase tracking-widest px-1">Pilih Warna Label</label>
                 <div class="flex items-center gap-4 bg-surface-container-low p-3 rounded-xl shadow-inner border border-surface-container">
-                    <input type="color" name="color" value="#4d44e3" id="statusColorPicker"
+                    <input type="color" name="color" value="#d97706" id="statusColorPicker"
                            class="w-12 h-12 rounded-xl border-2 border-white cursor-pointer p-0 shadow-sm shrink-0" />
-                    <input type="text" id="statusColorText" value="#4D44E3" readonly
+                    <input type="text" id="statusColorText" value="#D97706" readonly
                            class="bg-transparent border-none p-0 text-sm font-mono font-bold w-full focus:ring-0 uppercase" />
                 </div>
             </div>
