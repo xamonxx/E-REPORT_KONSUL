@@ -261,6 +261,14 @@ window.updatePreviewId = function updatePreviewId(accountId) {
         });
 };
 
+window.syncAnalyticsPeriodType = function syncAnalyticsPeriodType(periodType) {
+    window.dispatchEvent(
+        new CustomEvent('analytics-period-type', {
+            detail: String(periodType ?? 'monthly'),
+        })
+    );
+};
+
 window.buildConsultationUpdateUrl = function buildConsultationUpdateUrl(id) {
     if (!id) {
         return '#';

@@ -1,6 +1,6 @@
 <?php
 
 return [
-    'deal' => 'Selesai Deal',
+    'deal' => 'Selesai/Deal',
     'survey' => 'Masuk Survey',
 ];

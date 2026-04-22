@@ -90,19 +90,19 @@
 
     {{-- Tabs Content (Notes & Reminders) --}}
     <div class="lg:col-span-8 space-y-6" x-data="{ tab: 'notes' }">
-        <div class="flex gap-1 border-b border-surface-container mb-6 relative no-print overflow-x-auto scrollbar-none">
-            <button @click="tab = 'notes'" :class="tab === 'notes' ? 'text-primary' : 'text-on-surface-variant hover:text-on-surface'" class="pb-3 px-6 font-bold transition-all duration-300 relative z-10 whitespace-nowrap text-sm sm:text-base">
+        <div class="grid grid-cols-2 border-b border-surface-container mb-6 relative no-print">
+            <button @click="tab = 'notes'" :class="tab === 'notes' ? 'text-primary' : 'text-on-surface-variant hover:text-on-surface'" class="pb-4 px-4 sm:px-6 font-bold transition-all duration-300 relative z-10 whitespace-nowrap text-sm sm:text-base text-center">
                 Follow-Up Activity
             </button>
-            <button @click="tab = 'reminders'" :class="tab === 'reminders' ? 'text-primary' : 'text-on-surface-variant hover:text-on-surface'" class="pb-3 px-6 font-bold transition-all duration-300 relative z-10 flex items-center gap-2 whitespace-nowrap text-sm sm:text-base">
+            <button @click="tab = 'reminders'" :class="tab === 'reminders' ? 'text-primary' : 'text-on-surface-variant hover:text-on-surface'" class="pb-4 px-4 sm:px-6 font-bold transition-all duration-300 relative z-10 flex items-center justify-center gap-2 whitespace-nowrap text-sm sm:text-base text-center">
                 <span>Pengingat</span>
                 @if($consultation->reminders->where('is_read', false)->count() > 0)
                 <span class="w-5 h-5 rounded-full bg-error text-on-error text-[10px] flex items-center justify-center font-bold shadow-lg shadow-error/20 animate-pulse-soft">{{ $consultation->reminders->where('is_read', false)->count() }}</span>
                 @endif
             </button>
             {{-- Animated underline indicator --}}
-            <div class="absolute bottom-0 h-[3px] bg-primary transition-all duration-300 ease-in-out rounded-full shadow-[0_-2px_6px_rgba(77,68,227,0.3)]"
-                 :style="tab === 'notes' ? 'left: 0; width: 160px;' : 'left: 170px; width: 130px;'">
+            <div class="absolute bottom-0 left-0 h-[3px] w-1/2 bg-primary transition-all duration-300 ease-in-out rounded-full shadow-[0_-2px_6px_rgba(77,68,227,0.3)]"
+                 :class="tab === 'notes' ? 'translate-x-0' : 'translate-x-full'">
             </div>
         </div>
 

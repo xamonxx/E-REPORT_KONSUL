@@ -22,22 +22,22 @@
             account_id: @js((string) old('account_id', '')),
         }
     })" x-init="init()">
-    <div class="flex overflow-x-auto scrollbar-none bg-surface-container-lowest p-1.5 rounded-xl shadow-sm w-full sm:w-fit mb-8 gap-1 scroll-px-2 no-print">
+    <div class="grid grid-cols-3 sm:flex overflow-x-auto scrollbar-none bg-surface-container-lowest p-1.5 rounded-xl shadow-sm w-full sm:w-fit mb-8 gap-1 scroll-px-2 no-print">
         <button @click="activeTab = 'categories'"
            :class="activeTab === 'categories' ? 'bg-primary text-on-primary shadow-lg shadow-primary/20' : 'text-on-surface-variant hover:bg-surface-container-low'"
-           class="whitespace-nowrap px-4 sm:px-6 py-2.5 rounded-lg text-xs sm:text-sm font-bold transition-all duration-300 flex items-center gap-2">
-            <x-icon name="category" class="w-3.5 h-3.5" />
+           class="min-w-0 whitespace-nowrap px-3 sm:px-6 py-2.5 rounded-lg text-xs sm:text-sm font-bold transition-all duration-300 inline-flex items-center justify-center gap-2">
+            <x-icon name="folder_shared" class="w-3.5 h-3.5" />
             <span>Kategori</span>
         </button>
         <button @click="activeTab = 'statuses'"
            :class="activeTab === 'statuses' ? 'bg-primary text-on-primary shadow-lg shadow-primary/20' : 'text-on-surface-variant hover:bg-surface-container-low'"
-           class="whitespace-nowrap px-4 sm:px-6 py-2.5 rounded-lg text-xs sm:text-sm font-bold transition-all duration-300 flex items-center gap-2">
+           class="min-w-0 whitespace-nowrap px-3 sm:px-6 py-2.5 rounded-lg text-xs sm:text-sm font-bold transition-all duration-300 inline-flex items-center justify-center gap-2">
             <x-icon name="label" class="w-3.5 h-3.5" />
             <span>Status</span>
         </button>
         <button @click="activeTab = 'users'"
            :class="activeTab === 'users' ? 'bg-primary text-on-primary shadow-lg shadow-primary/20' : 'text-on-surface-variant hover:bg-surface-container-low'"
-           class="whitespace-nowrap px-4 sm:px-6 py-2.5 rounded-lg text-xs sm:text-sm font-bold transition-all duration-300 flex items-center gap-2">
+           class="min-w-0 whitespace-nowrap px-3 sm:px-6 py-2.5 rounded-lg text-xs sm:text-sm font-bold transition-all duration-300 inline-flex items-center justify-center gap-2">
             <x-icon name="group" class="w-3.5 h-3.5" />
             <span>Users</span>
         </button>
@@ -354,42 +354,42 @@
             </form>
         </div>
         <div class="table-scroll-mobile overflow-x-auto scrollbar-thin scrollbar-thumb-surface-container">
-            <table class="w-full min-w-[700px] text-left border-collapse">
+            <table class="w-full min-w-[620px] sm:min-w-[700px] text-left border-collapse">
                 <thead>
                     <tr class="bg-surface-container-low/50">
-                        <th class="px-6 sm:px-8 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Administrator</th>
-                        <th class="px-6 sm:px-8 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest leading-none">Akses Level</th>
-                        <th class="px-6 sm:px-8 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest leading-none">Akun</th>
-                        <th class="px-6 sm:px-8 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest text-right leading-none">Aksi</th>
+                        <th class="px-4 sm:px-8 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Administrator</th>
+                        <th class="w-[116px] min-w-[116px] px-3 sm:px-6 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest leading-tight">Akses Level</th>
+                        <th class="w-[140px] min-w-[140px] px-3 sm:px-6 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest leading-tight">Akun</th>
+                        <th class="w-[120px] min-w-[120px] px-4 sm:px-8 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest text-right leading-none">Aksi</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-surface-container-low">
                     @forelse($users as $u)
                     <tr class="hover:bg-surface-container-low/30 transition-colors group">
-                        <td class="px-6 sm:px-8 py-4">
+                        <td class="px-4 sm:px-8 py-4">
                             <div class="flex items-center gap-3">
                                 <div class="w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs shrink-0 shadow-sm ring-2 ring-white
                                             {{ $u->isSuperAdmin() ? 'bg-primary-container text-primary' : 'bg-secondary-container text-secondary' }}">
                                     {{ strtoupper(substr($u->name, 0, 2)) }}
                                 </div>
                                 <div class="min-w-0">
-                                    <span class="font-bold text-sm text-on-surface block truncate max-w-[150px]">{{ $u->name }}</span>
-                                    <span class="text-[10px] text-on-surface-variant font-medium block truncate max-w-[180px]">{{ $u->email }}</span>
+                                    <span class="font-bold text-sm text-on-surface block truncate max-w-[130px] sm:max-w-[150px]">{{ $u->name }}</span>
+                                    <span class="text-[10px] text-on-surface-variant font-medium block truncate max-w-[150px] sm:max-w-[180px]">{{ $u->email }}</span>
                                 </div>
                             </div>
                         </td>
-                        <td class="px-6 sm:px-8 py-4 text-sm font-bold">
+                        <td class="px-3 sm:px-6 py-4 align-middle">
                             @if($u->isSuperAdmin())
-                            <span class="px-3 py-1 rounded-full text-[9px] font-extrabold uppercase bg-primary text-on-primary shadow-sm tracking-widest">Super Admin</span>
+                            <span class="inline-flex max-w-full items-center justify-center whitespace-nowrap rounded-full bg-primary px-2.5 sm:px-3 py-1 text-[9px] font-extrabold uppercase tracking-[0.18em] text-on-primary shadow-sm">Super Admin</span>
                             @else
-                            <span class="px-3 py-1 rounded-full text-[9px] font-extrabold uppercase bg-secondary-container text-secondary-dim border border-secondary/10 tracking-widest">Admin Akun</span>
+                            <span class="inline-flex max-w-full items-center justify-center whitespace-nowrap rounded-full border border-secondary/10 bg-secondary-container px-2.5 sm:px-3 py-1 text-[9px] font-extrabold uppercase tracking-[0.18em] text-secondary-dim">Admin Akun</span>
                             @endif
                         </td>
-                        <td class="px-6 sm:px-8 py-4">
-                            <span class="block max-w-[220px] whitespace-normal break-words text-sm font-bold leading-snug text-on-surface-variant sm:max-w-[280px]">{{ $u->account ? $u->account->name : 'Akses Pusat' }}</span>
+                        <td class="px-3 sm:px-6 py-4">
+                            <span class="block max-w-[140px] whitespace-normal break-words text-sm font-bold leading-snug text-on-surface-variant sm:max-w-[280px]">{{ $u->account ? $u->account->name : 'Akses Pusat' }}</span>
                         </td>
-                        <td class="px-6 sm:px-8 py-4 text-right">
-                            <div class="flex justify-end gap-1 items-center">
+                        <td class="px-4 sm:px-8 py-4 text-right">
+                            <div class="flex justify-end gap-1 items-center whitespace-nowrap">
                                 <button type="button"
                                         @click="openEditUser({
                                             id: '{{ $u->id }}',

@@ -52,7 +52,11 @@ class Account extends Model
             // Fallback: resolve status ID directly (no JOIN)
             static $dealStatusId;
             if (!isset($dealStatusId)) {
-                $dealStatusId = StatusCategory::where('name', config('statuses.deal', 'Selesai/Deal'))->value('id');
+                $dealStatusId = StatusCategory::whereIn('name', array_filter([
+                    config('statuses.deal'),
+                    'Selesai/Deal',
+                    'Selesai Deal',
+                ]))->value('id');
             }
             $deals = $dealStatusId
                 ? $this->consultations()->where('status_category_id', $dealStatusId)->count()

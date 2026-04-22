@@ -54,10 +54,14 @@ class DashboardController extends Controller
         $avgConversion = $totalLeads > 0 ? round(($totalDeals / $totalLeads) * 100, 1) : 0;
 
         $now = Carbon::now();
-        $thisMonth = Consultation::whereMonth('created_at', $now->month)->whereYear('created_at', $now->year)->count();
+        $thisMonth = Consultation::whereMonth('consultation_date', $now->month)
+            ->whereYear('consultation_date', $now->year)
+            ->count();
 
         $prev = $now->copy()->subMonth();
-        $lastMonth = Consultation::whereMonth('created_at', $prev->month)->whereYear('created_at', $prev->year)->count();
+        $lastMonth = Consultation::whereMonth('consultation_date', $prev->month)
+            ->whereYear('consultation_date', $prev->year)
+            ->count();
 
         $growthPercent = $lastMonth > 0
             ? round((($thisMonth - $lastMonth) / $lastMonth) * 100, 1)
@@ -181,12 +185,28 @@ class DashboardController extends Controller
         static $cache = [];
 
         if (!isset($cache[$configKey])) {
-            $statusName = config("statuses.{$configKey}");
-            $cache[$configKey] = $statusName
-                ? StatusCategory::where('name', $statusName)->value('id')
+            $aliases = collect([$this->statusAliases($configKey)])
+                ->flatten()
+                ->filter()
+                ->unique()
+                ->values();
+
+            $cache[$configKey] = $aliases->isNotEmpty()
+                ? StatusCategory::whereIn('name', $aliases->all())->value('id')
                 : null;
         }
 
         return $cache[$configKey];
+    }
+
+    private function statusAliases(string $configKey): array
+    {
+        $configured = config("statuses.{$configKey}");
+
+        return match ($configKey) {
+            'deal' => array_values(array_filter([$configured, 'Selesai/Deal', 'Selesai Deal'])),
+            'survey' => array_values(array_filter([$configured, 'Masuk Survey'])),
+            default => array_values(array_filter([$configured])),
+        };
     }
 }

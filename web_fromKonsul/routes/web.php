@@ -70,6 +70,8 @@ Route::middleware('auth')->group(function () {
 
     // Export
     Route::get('/export/csv', [ExportController::class, 'exportCsv'])->name('export.csv');
+    Route::get('/export/analytics/excel', [ExportController::class, 'exportAnalyticsExcel'])->name('export.analytics.excel');
+    Route::get('/export/analytics/pdf', [ExportController::class, 'exportAnalyticsPdf'])->name('export.analytics.pdf');
 
     // ─── Super Admin Only ────────────────────────────────
     Route::middleware('role:super_admin')->group(function () {
@@ -77,6 +79,7 @@ Route::middleware('auth')->group(function () {
 
         // Report Attendance
         Route::get('/report-attendances', [ReportAttendanceController::class, 'index'])->name('report-attendances.index');
+        Route::post('/report-attendances/upsert', [ReportAttendanceController::class, 'upsertBySuperAdmin'])->name('report-attendances.upsert');
 
         // Master Data
         Route::get('/master-data', [MasterDataController::class, 'index'])->name('master-data.index');

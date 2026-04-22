@@ -80,19 +80,19 @@
         <div class="px-6 sm:px-8 py-6 flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white border-b border-surface-container-low/50 gap-4">
             <div>
                 <h2 class="text-xl font-bold font-headline text-on-surface">Peringkat Akun</h2>
-                <p class="text-xs text-on-surface-variant">Kinerja berdasarkan target konversi</p>
+                <p class="text-xs text-on-surface-variant">Kinerja berdasarkan target konversi. Geser di dalam panel untuk melihat semua akun.</p>
             </div>
             <a href="{{ route('accounts.index') }}" class="text-primary text-sm font-semibold hover:underline">Lihat Semua Akun</a>
         </div>
-        <div class="table-scroll-mobile overflow-x-auto scrollbar-thin scrollbar-thumb-surface-container shadow-inner">
+        <div class="table-scroll-mobile overflow-x-auto overflow-y-auto max-h-[28rem] lg:max-h-[32rem] scrollbar-thin scrollbar-thumb-surface-container shadow-inner">
             <table class="w-full min-w-[600px] text-left border-collapse whitespace-nowrap">
                 <thead>
-                    <tr class="bg-surface-container-low/50">
-                        <th class="px-6 sm:px-8 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest text-center">Peringkat</th>
-                        <th class="px-6 sm:px-8 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest font-headline">Nama Akun</th>
-                        <th class="px-6 sm:px-8 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest text-center">Lead</th>
-                        <th class="px-6 sm:px-8 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Progres Target</th>
-                        <th class="px-6 sm:px-8 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest text-right">Konversi</th>
+                    <tr class="bg-surface-container-low/95 backdrop-blur supports-[backdrop-filter]:bg-surface-container-low/85">
+                        <th class="sticky top-0 z-10 bg-surface-container-low/95 px-6 sm:px-8 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest text-center">Peringkat</th>
+                        <th class="sticky top-0 z-10 bg-surface-container-low/95 px-6 sm:px-8 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest font-headline">Nama Akun</th>
+                        <th class="sticky top-0 z-10 bg-surface-container-low/95 px-6 sm:px-8 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest text-center">Lead</th>
+                        <th class="sticky top-0 z-10 bg-surface-container-low/95 px-6 sm:px-8 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Progres Target</th>
+                        <th class="sticky top-0 z-10 bg-surface-container-low/95 px-6 sm:px-8 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest text-right">Konversi</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-surface-container-low">
@@ -187,7 +187,7 @@
     <div class="px-6 sm:px-8 py-6 flex flex-col xl:flex-row justify-between items-start xl:items-center bg-white border-b border-surface-container-low/50 gap-6">
         <div>
             <h2 class="text-xl font-bold font-headline text-on-surface">Monitoring Laporan Harian Admin</h2>
-            <p class="text-xs text-on-surface-variant">Absensi report untuk tanggal: {{ $today->translatedFormat('d F Y') }}</p>
+            <p class="text-xs text-on-surface-variant">Absensi report untuk tanggal: {{ $today->translatedFormat('d F Y') }}. Tabel dibuat lebih ringkas dan bisa digeser di dalam panel.</p>
         </div>
         <div class="flex flex-wrap items-center gap-3 sm:gap-4 text-[10px] sm:text-xs font-semibold">
             <span class="flex items-center gap-1.5 text-green-700 whitespace-nowrap"><span class="w-3 h-3 rounded bg-green-500 shrink-0"></span> Ada WA</span>
@@ -196,42 +196,45 @@
             <span class="flex items-center gap-1.5 text-error whitespace-nowrap"><span class="w-3 h-3 rounded bg-error shrink-0"></span> Tidak Laporan</span>
         </div>
     </div>
-    <div class="table-scroll-mobile overflow-x-auto scrollbar-thin scrollbar-thumb-surface-container shadow-inner">
+    <div class="table-scroll-mobile overflow-x-auto overflow-y-auto max-h-[30rem] scrollbar-thin scrollbar-thumb-surface-container shadow-inner">
         <table class="w-full min-w-[700px] text-left border-collapse whitespace-nowrap">
             <thead>
-                <tr class="bg-surface-container-low/50">
-                    <th class="px-6 sm:px-8 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest text-center">Waktu Report</th>
-                    <th class="px-6 sm:px-8 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Nama Admin</th>
-                    <th class="px-6 sm:px-8 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Akun</th>
-                    <th class="px-6 sm:px-8 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest text-right">Status Absensi</th>
+                <tr class="bg-surface-container-low/95 backdrop-blur supports-[backdrop-filter]:bg-surface-container-low/85">
+                    <th class="sticky top-0 z-10 bg-surface-container-low/95 px-4 sm:px-5 py-3 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest text-center">Waktu</th>
+                    <th class="sticky top-0 z-10 bg-surface-container-low/95 px-4 sm:px-5 py-3 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Admin</th>
+                    <th class="sticky top-0 z-10 bg-surface-container-low/95 px-4 sm:px-5 py-3 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Akun</th>
+                    <th class="sticky top-0 z-10 bg-surface-container-low/95 px-4 sm:px-5 py-3 text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Status</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-surface-container-low">
                 @foreach($adminAttendances as $att)
                 <tr class="hover:bg-surface-container-low/30 transition-colors">
-                    <td class="px-6 sm:px-8 py-5 text-center">
+                    <td class="px-4 sm:px-5 py-3 text-center">
                         @if($att->has_reported)
-                            <div class="flex flex-col items-center">
+                            <div class="inline-flex flex-col items-center rounded-xl bg-surface px-3 py-2 border border-surface-container-low">
                                 <span class="text-on-surface font-bold text-sm leading-none">{{ $att->reported_at->format('H:i') }}</span>
-                                <span class="text-[10px] text-on-surface-variant mt-1">WIB</span>
+                                <span class="text-[9px] text-on-surface-variant mt-1">WIB</span>
                             </div>
                         @else
                             <span class="text-error/30 font-bold text-xl leading-none">—</span>
                         @endif
                     </td>
-                    <td class="px-6 sm:px-8 py-5">
+                    <td class="px-4 sm:px-5 py-3">
                         <div class="flex items-center gap-3">
                             <div class="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center font-bold text-xs text-on-surface-variant shrink-0">
                                 {{ strtoupper(substr($att->admin->name, 0, 2)) }}
                             </div>
-                            <span class="font-bold text-on-surface text-sm truncate max-w-[150px]">{{ $att->admin->name }}</span>
+                            <div class="min-w-0">
+                                <span class="font-bold text-on-surface text-sm truncate max-w-[150px] block">{{ $att->admin->name }}</span>
+                                <span class="text-[9px] text-on-surface-variant uppercase tracking-wider">Admin Akun</span>
+                            </div>
                         </div>
                     </td>
-                    <td class="px-6 sm:px-8 py-5">
-                        <span class="text-sm font-medium text-on-surface-variant truncate max-w-[140px] block">{{ $att->account?->name ?? 'Pusat/Lain' }}</span>
+                    <td class="px-4 sm:px-5 py-3">
+                        <span class="text-xs font-medium text-on-surface-variant truncate max-w-[160px] block">{{ $att->account?->name ?? 'Pusat/Lain' }}</span>
                     </td>
-                    <td class="px-6 sm:px-8 py-5 text-right">
-                        <div class="flex justify-end">
+                    <td class="px-4 sm:px-5 py-3">
+                        <div class="flex justify-start">
                             @if($att->has_reported)
                                 @if($att->report_category === 'ada_wa')
                                     <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-green-100 text-green-700 border border-green-200 flex items-center gap-1.5">

@@ -10,6 +10,9 @@ use App\Models\User;
 
 class ReportAttendanceController extends Controller
 {
+    private const REPORT_CATEGORY_OPTIONS = ['ada_wa', 'nol_wa', 'libur_susulan'];
+    private const STATUS_FILTER_OPTIONS = ['all', 'ada_wa', 'nol_wa', 'libur_susulan', 'belum_laporan'];
+
     public function index(Request $request)
     {
         // Hanya Super Admin yang bisa mengakses monitoring
@@ -20,6 +23,11 @@ class ReportAttendanceController extends Controller
 
         $dateParam = $request->get('date', Carbon::today()->format('Y-m-d'));
         $date = Carbon::parse($dateParam);
+        $selectedStatus = $request->get('status', 'all');
+
+        if (!in_array($selectedStatus, self::STATUS_FILTER_OPTIONS, true)) {
+            $selectedStatus = 'all';
+        }
 
         $dateStr = $date->format('Y-m-d');
 
@@ -37,7 +45,70 @@ class ReportAttendanceController extends Controller
                 ];
             });
 
-        return view('report-attendances.index', compact('adminAttendances', 'date'));
+        $statusCounts = [
+            'all' => $adminAttendances->count(),
+            'ada_wa' => $adminAttendances->where('report_category', 'ada_wa')->count(),
+            'nol_wa' => $adminAttendances->where('report_category', 'nol_wa')->count(),
+            'libur_susulan' => $adminAttendances->where('report_category', 'libur_susulan')->count(),
+            'belum_laporan' => $adminAttendances->where('has_reported', false)->count(),
+        ];
+
+        $filteredAttendances = match ($selectedStatus) {
+            'ada_wa', 'nol_wa', 'libur_susulan' => $adminAttendances->where('report_category', $selectedStatus)->values(),
+            'belum_laporan' => $adminAttendances->where('has_reported', false)->values(),
+            default => $adminAttendances->values(),
+        };
+
+        return view('report-attendances.index', [
+            'adminAttendances' => $filteredAttendances,
+            'date' => $date,
+            'selectedStatus' => $selectedStatus,
+            'statusCounts' => $statusCounts,
+        ]);
+    }
+
+    public function upsertBySuperAdmin(Request $request)
+    {
+        $user = auth()->user();
+        if (!$user->isSuperAdmin()) {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'report_date' => 'required|date',
+            'report_category' => 'nullable|in:' . implode(',', self::REPORT_CATEGORY_OPTIONS),
+        ], [
+            'user_id.required' => 'Admin wajib dipilih.',
+            'user_id.exists' => 'Admin tidak valid.',
+            'report_date.required' => 'Tanggal laporan wajib diisi.',
+            'report_category.in' => 'Status absensi tidak valid.',
+        ]);
+
+        $admin = User::where('role', UserRole::Admin)->findOrFail($validated['user_id']);
+        $reportDate = Carbon::parse($validated['report_date'])->toDateString();
+
+        $attendance = ReportAttendance::firstOrNew([
+            'user_id' => $admin->id,
+            'account_id' => $admin->account_id,
+            'report_date' => $reportDate,
+        ]);
+
+        if (blank($validated['report_category'])) {
+            if ($attendance->exists) {
+                $attendance->delete();
+            }
+
+            return back()->with('success', 'Status absensi admin berhasil diubah menjadi belum laporan.');
+        }
+
+        $attendance->fill([
+            'account_id' => $admin->account_id,
+            'report_category' => $validated['report_category'],
+        ]);
+        $attendance->save();
+
+        return back()->with('success', 'Status absensi admin berhasil diperbarui.');
     }
 
     public function store(Request $request)
@@ -50,7 +121,7 @@ class ReportAttendanceController extends Controller
         }
 
         $request->validate([
-            'report_category' => 'required|in:ada_wa,nol_wa,libur_susulan',
+            'report_category' => 'required|in:' . implode(',', self::REPORT_CATEGORY_OPTIONS),
         ], [
             'report_category.required' => 'Pilih kategori laporan absen Anda.',
             'report_category.in' => 'Kategori yang dipilih tidak valid.'

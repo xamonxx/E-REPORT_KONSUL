@@ -54,6 +54,8 @@ class AppServiceProvider extends ServiceProvider
         Consultation::updated($clearDashboardCache);
         Consultation::deleted($clearDashboardCache);
         ReportAttendance::created($clearDashboardCache);
+        ReportAttendance::updated($clearDashboardCache);
+        ReportAttendance::deleted($clearDashboardCache);
 
         $forgetNotificationCaches = function (?Consultation $consultation, ?int $ownerUserId = null) {
             if (! $consultation) {
